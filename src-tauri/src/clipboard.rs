@@ -83,13 +83,6 @@ pub fn capture_selected_content() -> (String, bool) {
 
     // 3. خواندن از طریق arboard
     if let Ok(mut clipboard) = arboard::Clipboard::new() {
-        // خواندن نسخه HTML در صورت وجود
-        if let Ok(html) = clipboard.get_html() {
-            if !html.trim().is_empty() {
-                return (html, true);
-            }
-        }
-        // بازگشت به متن ساده
         if let Ok(text) = clipboard.get_text() {
             return (text, false);
         }
