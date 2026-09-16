@@ -4,6 +4,7 @@
   "description": "Ultra-lightweight, blazing-fast, and secure cross-platform RTL popup viewer built with Rust & Tauri v2",
   "main": "src/index.html",
   "scripts": {
+    "tauri": "tauri",
     "dev": "tauri dev",
     "build": "tauri build"
   },
