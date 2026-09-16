@@ -19,11 +19,18 @@ A modern, ultra-lightweight, high-performance, and secure cross-platform desktop
 
 ---
 
-## 🛠️ پیش‌نیازهای توسعه | Prerequisites
+## 🛠️ پیش‌نیازها | Prerequisites
 
-1. **Rust:** (نصب از طریق `rustup` که روی سیستم فعال شد)
-2. **Node.js:** نسخه ۱۸ به بالا
-3. **ابزارهای ساخت C++:** مایکروسافت C++ Build Tools (روی ویندوز)
+### 👤 برای کاربران نهایی (End Users):
+> **هیچ پیش‌نیازی لازم نیست!**
+> فایل نصبی خروجی برنامه (`RTL-View_x64-setup.exe` یا فایل پرتابل `.exe`) کاملاً مستقل (Standalone Native) است و تمام ملزومات را همراه خود دارد؛ کاربر عادی نیازی به نصب هیچ ابزار جانبی ندارد.
+
+### 💻 برای توسعه‌دهندگان (Developers):
+اگر می‌خواهید سورس‌کد را روی رایانه خود اجرا یا ویرایش کنید، می‌توانید به سادگی با یک دستور، بررسی و نصب خودکار پیش‌نیازها (Node.js، Rust و...) را اجرا کنید:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File setup-dev-env.ps1
+```
 
 ---
 
