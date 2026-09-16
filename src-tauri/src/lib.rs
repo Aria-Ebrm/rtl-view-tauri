@@ -8,7 +8,7 @@ use tauri::{
     AppHandle, Emitter, Manager, PhysicalSize, WebviewWindow,
 };
 use tauri_plugin_autostart::ManagerExt;
-use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutState};
+use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState};
 use text_engine::{process_clipboard_payload, ProcessedContent};
 
 // نگهداری آخرین محتوای پردازش‌شده برای ارسال به پنجره
@@ -94,13 +94,13 @@ pub fn run() {
             let handle = app.handle().clone();
 
             // 1. ثبت کلید میانبر سراسری Ctrl+Alt+F
-            let shortcut = "Ctrl+Alt+F".parse::<Shortcut>().expect("Invalid shortcut syntax");
+            let shortcut = Shortcut::new(Some(Modifiers::CONTROL | Modifiers::ALT), Code::KeyF);
             let shortcut_handle = handle.clone();
-            app.global_shortcut().on_shortcut(shortcut, move |_app, _sc, event| {
-                if event.state == ShortcutState::Pressed {
+            let _ = app.global_shortcut().on_shortcut(shortcut, move |_app, _sc, event| {
+                if event.state() == ShortcutState::Pressed {
                     trigger_popup(&shortcut_handle);
                 }
-            })?;
+            });
 
             // 2. ساخت منوی نوار وظیفه (System Tray)
             let is_auto = handle.autolaunch().is_enabled().unwrap_or(false);
@@ -117,12 +117,18 @@ pub fn run() {
                 &quit_item,
             ])?;
 
-            let _tray = TrayIconBuilder::new()
+            let mut tray_builder = TrayIconBuilder::new()
                 .menu(&tray_menu)
                 .tooltip("RTL View - نمایشگر راست‌چین (Ctrl+Alt+F)")
-                .show_menu_on_left_click(false)
+                .show_menu_on_left_click(false);
+
+            if let Some(icon) = app.default_window_icon() {
+                tray_builder = tray_builder.icon(icon.clone());
+            }
+
+            let _tray = tray_builder
                 .on_menu_event(move |app, event| {
-                    match event.id.as_ref() {
+                    match event.id().as_ref() {
                         "help" => {
                             if let Some(w) = app.get_webview_window("main") {
                                 let _ = w.show();

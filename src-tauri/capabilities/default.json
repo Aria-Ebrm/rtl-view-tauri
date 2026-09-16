@@ -11,7 +11,8 @@
     "core:window:allow-set-size",
     "core:window:allow-set-focus",
     "core:window:allow-center",
-    "autostart:default",
-    "global-shortcut:default"
+    "autostart:allow-enable",
+    "autostart:allow-disable",
+    "autostart:allow-is-enabled"
   ]
 }
