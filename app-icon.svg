@@ -1,0 +1,20 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#1d4ed8"/>
+    </linearGradient>
+    <filter id="dropShadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#0f172a" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+  <rect x="32" y="32" width="448" height="448" rx="96" ry="96" fill="url(#bgGrad)" filter="url(#dropShadow)"/>
+  <rect x="34" y="34" width="444" height="444" rx="94" ry="94" fill="none" stroke="#93c5fd" stroke-width="4" stroke-opacity="0.4"/>
+  <rect x="96" y="130" width="320" height="28" rx="14" fill="#ffffff"/>
+  <rect x="176" y="194" width="240" height="28" rx="14" fill="#e0f2fe"/>
+  <rect x="96" y="258" width="320" height="28" rx="14" fill="#ffffff"/>
+  <rect x="256" y="322" width="160" height="28" rx="14" fill="#93c5fd"/>
+  <g transform="translate(100, 360)">
+    <path d="M 90 25 L 30 25 M 50 10 L 25 25 L 50 40" fill="none" stroke="#ffffff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>
