@@ -18,9 +18,14 @@ static CURRENT_CONTENT: Mutex<Option<ProcessedContent>> = Mutex::new(None);
 fn get_current_content() -> ProcessedContent {
     let lock = CURRENT_CONTENT.lock().unwrap();
     lock.clone().unwrap_or_else(|| ProcessedContent {
-        html: r#"<div class="empty-state">متنی برای نمایش یافت نشد.</div>"#.to_string(),
+        html: r#"<div class="empty-state" style="text-align: center; padding: 24px 16px;">
+            <div style="font-size: 20px; font-weight: bold; margin-bottom: 12px; color: #60a5fa;">برنامه RTL View فعال است ✔</div>
+            <p style="color: #cbd5e1; margin-bottom: 12px; font-size: 14px;">متن دلخواه خود را در هر برنامه‌ای انتخاب کنید و کلیدهای میانبر زیر را فشار دهید:</p>
+            <div style="display: inline-block; background: #1e293b; border: 1px solid #475569; border-radius: 8px; padding: 8px 20px; font-size: 18px; font-weight: bold; color: #38bdf8; margin: 8px 0; letter-spacing: 1px;">Ctrl + Alt + F</div>
+            <p style="font-size: 12px; color: #94a3b8; margin-top: 16px;">این پنجره با کلید Esc پنهان می‌شود و در نوار وظیفه کنار ساعت (System Tray) به کار خود ادامه می‌دهد.</p>
+        </div>"#.to_string(),
         visible_length: 0,
-        is_empty: true,
+        is_empty: false,
     })
 }
 
@@ -175,6 +180,13 @@ pub fn run() {
                         let _ = win_clone.hide();
                     }
                 });
+            }
+
+            // 4. در صورت اجرای خودکار با استارتاپ ویندوز، پنجره در حالت مینیمایز مخفی می‌ماند
+            if std::env::args().any(|arg| arg == "--minimized") {
+                if let Some(w) = app.get_webview_window("main") {
+                    let _ = w.hide();
+                }
             }
 
             Ok(())

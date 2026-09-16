@@ -20,7 +20,7 @@
         "fullscreen": false,
         "alwaysOnTop": true,
         "center": true,
-        "visible": false,
+        "visible": true,
         "decorations": true,
         "skipTaskbar": false
       }
@@ -45,8 +45,5 @@
         "languages": ["English"]
       }
     }
-  },
-  "plugins": {
-    "autostart": {}
   }
 }

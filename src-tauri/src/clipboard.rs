@@ -7,12 +7,42 @@ pub fn simulate_copy() {
     {
         use std::mem::size_of;
         use windows_sys::Win32::UI::Input::KeyboardAndMouse::{
-            SendInput, INPUT, INPUT_0, INPUT_KEYBOARD, KEYBDINPUT, KEYEVENTF_KEYUP, VK_CONTROL,
+            SendInput, INPUT, INPUT_0, INPUT_KEYBOARD, KEYBDINPUT, KEYEVENTF_KEYUP, VK_CONTROL, VK_MENU,
         };
 
         const VK_C: u16 = 0x43;
 
         unsafe {
+            // ابتدا کلیدهای فشرده‌شده Alt و Ctrl آزاد می‌شوند تا ارسال Ctrl+C تداخل نداشته باشد
+            let release_modifiers = [
+                INPUT {
+                    r#type: INPUT_KEYBOARD,
+                    Anonymous: INPUT_0 {
+                        ki: KEYBDINPUT {
+                            wVk: VK_MENU,
+                            wScan: 0,
+                            dwFlags: KEYEVENTF_KEYUP,
+                            time: 0,
+                            dwExtraInfo: 0,
+                        },
+                    },
+                },
+                INPUT {
+                    r#type: INPUT_KEYBOARD,
+                    Anonymous: INPUT_0 {
+                        ki: KEYBDINPUT {
+                            wVk: VK_CONTROL,
+                            wScan: 0,
+                            dwFlags: KEYEVENTF_KEYUP,
+                            time: 0,
+                            dwExtraInfo: 0,
+                        },
+                    },
+                },
+            ];
+            SendInput(release_modifiers.len() as u32, release_modifiers.as_mut_ptr(), size_of::<INPUT>() as i32);
+
+            sleep(Duration::from_millis(30));
             let mut inputs = [
                 // Ctrl Down
                 INPUT {
