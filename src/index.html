@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نمایشگر راست‌چین RTL View</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="app-header">
+        <div class="header-badge">
+            <span class="dot"></span>
+            <span>نمایشگر راست‌چین (RTL)</span>
+        </div>
+        <div class="shortcut-tip">
+            <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>F</kbd>
+        </div>
+    </header>
+
+    <main class="content-container">
+        <div id="content-body" class="content-body">
+            <!-- محتوای راست‌چین شده توسط JavaScript اینجا قرار می‌گیرد -->
+        </div>
+    </main>
+
+    <footer class="app-footer">
+        <div class="footer-info">
+            <span id="char-count">۰ کاراکتر</span>
+        </div>
+        <div class="footer-actions">
+            <button id="btn-copy" class="btn btn-secondary" title="کپی متن">کپی متن</button>
+            <button id="btn-close" class="btn btn-primary" title="بستن (Esc)">بستن <kbd>Esc</kbd></button>
+        </div>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>

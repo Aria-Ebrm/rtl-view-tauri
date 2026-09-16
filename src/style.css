@@ -1,0 +1,239 @@
+@font-face {
+    font-family: 'Vazirmatn';
+    src: url('./assets/Vazirmatn-Medium.ttf') format('truetype');
+    font-weight: 500;
+    font-style: normal;
+}
+
+:root {
+    --bg-main: #18181b;
+    --bg-card: #27272a;
+    --bg-header: #202024;
+    --text-main: #f4f4f5;
+    --text-muted: #a1a1aa;
+    --accent: #fbbf24;
+    --accent-bg: rgba(251, 191, 36, 0.12);
+    --border: #3f3f46;
+    --border-light: #52525b;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+}
+
+body {
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Tahoma, sans-serif;
+    font-size: 14.5px;
+    line-height: 1.65;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+    user-select: text;
+    -webkit-user-select: text;
+}
+
+/* Header */
+.app-header {
+    background-color: var(--bg-header);
+    border-bottom: 1px solid var(--border);
+    padding: 8px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12.5px;
+}
+
+.header-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+    color: var(--text-main);
+}
+
+.dot {
+    width: 8px;
+    height: 8px;
+    background-color: #22c55e;
+    border-radius: 50%;
+    box-shadow: 0 0 8px rgba(34, 197, 94, 0.6);
+}
+
+.shortcut-tip kbd,
+.btn kbd {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--accent);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: Consolas, monospace;
+    font-size: 11px;
+}
+
+/* Content */
+.content-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 18px 20px;
+}
+
+.content-body {
+    word-break: break-word;
+}
+
+pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-family: inherit;
+}
+
+.text-block {
+    margin-bottom: 8px;
+}
+
+/* کلمات و عبارات انگلیسی */
+code {
+    font-family: 'Consolas', 'Courier New', monospace;
+    background-color: var(--bg-card);
+    color: var(--accent);
+    padding: 2px 7px;
+    border-radius: 5px;
+    font-size: 13px;
+    border: 1px solid rgba(251, 191, 36, 0.2);
+    unicode-bidi: isolate;
+    direction: ltr;
+    display: inline-block;
+    vertical-align: baseline;
+}
+
+/* جدول‌ها */
+.table-block {
+    font-family: 'Consolas', 'Courier New', monospace;
+    white-space: pre;
+    direction: ltr;
+    text-align: left;
+    background-color: #1f1f23;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px;
+    margin: 10px 0;
+    font-size: 13px;
+    line-height: 1.45;
+    overflow-x: auto;
+}
+
+/* استایل محتوای HTML */
+.html-content ul, .html-content ol {
+    margin: 8px 0;
+    padding-right: 24px;
+}
+
+.html-content li {
+    margin: 4px 0;
+}
+
+.html-content li::marker {
+    color: var(--accent);
+}
+
+.html-content table {
+    border-collapse: collapse;
+    margin: 10px 0;
+    max-width: 100%;
+}
+
+.html-content th, .html-content td {
+    border: 1px solid var(--border);
+    padding: 6px 12px;
+    text-align: right;
+}
+
+.html-content th {
+    background-color: var(--bg-card);
+}
+
+.empty-state {
+    text-align: center;
+    color: var(--text-muted);
+    padding: 40px 20px;
+    font-size: 14px;
+}
+
+/* Footer */
+.app-footer {
+    background-color: var(--bg-header);
+    border-top: 1px solid var(--border);
+    padding: 8px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+}
+
+.footer-info {
+    color: var(--text-muted);
+}
+
+.footer-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.btn {
+    font-family: inherit;
+    font-size: 12.5px;
+    padding: 5px 14px;
+    border-radius: 5px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-primary {
+    background-color: #3f3f46;
+    color: #f4f4f5;
+    border-color: var(--border-light);
+}
+
+.btn-primary:hover {
+    background-color: #52525b;
+}
+
+.btn-secondary {
+    background-color: transparent;
+    color: var(--text-muted);
+    border-color: var(--border);
+}
+
+.btn-secondary:hover {
+    background-color: var(--bg-card);
+    color: var(--text-main);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+    width: 7px;
+    height: 7px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-main);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--border-light);
+}

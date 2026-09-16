@@ -1,0 +1,19 @@
+{
+  "name": "rtl-view",
+  "version": "2.0.0",
+  "description": "Ultra-lightweight, blazing-fast, and secure cross-platform RTL popup viewer built with Rust & Tauri v2",
+  "main": "src/index.html",
+  "scripts": {
+    "dev": "tauri dev",
+    "build": "tauri build"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2.0.0",
+    "@tauri-apps/plugin-autostart": "^2.0.0",
+    "@tauri-apps/plugin-clipboard-manager": "^2.0.0",
+    "@tauri-apps/plugin-global-shortcut": "^2.0.0"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.0.0"
+  }
+}
