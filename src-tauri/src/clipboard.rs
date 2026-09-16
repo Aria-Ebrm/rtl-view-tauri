@@ -14,7 +14,7 @@ pub fn simulate_copy() {
 
         unsafe {
             // ابتدا کلیدهای فشرده‌شده Alt و Ctrl آزاد می‌شوند تا ارسال Ctrl+C تداخل نداشته باشد
-            let release_modifiers = [
+            let mut release_modifiers = [
                 INPUT {
                     r#type: INPUT_KEYBOARD,
                     Anonymous: INPUT_0 {
