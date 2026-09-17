@@ -301,7 +301,7 @@
         const outerPadding = 36;
         const innerPaddingX = 32;
         const headerHeight = 46;
-        const footerHeight = 40;
+        const bottomPadding = 20;
         const maxLineWidth = cardLogicalWidth - (innerPaddingX * 2);
 
         const textFontSize = 16.5;
@@ -374,7 +374,7 @@
         }
         totalContentHeight = Math.max(totalContentHeight, 80);
 
-        const cardLogicalHeight = headerHeight + totalContentHeight + footerHeight + 20;
+        const cardLogicalHeight = headerHeight + totalContentHeight + bottomPadding;
         const totalLogicalHeight = cardLogicalHeight + (outerPadding * 2);
         const totalLogicalWidth = cardLogicalWidth + (outerPadding * 2);
 
@@ -416,30 +416,42 @@
 
         // ۳. هدر کارت و دکمه‌های پنجره (ویندوز یا مک)
         const headerCenterY = cardY + (headerHeight / 2);
-
-        if (effectiveStyle === 'windows') {
-            // دکمه‌های کنترل پنجره ویندوز ۱۱ در سمت چپ (یا استایل استاندارد)
-            drawWindowsControls(ctx, cardX + 20, headerCenterY, palette);
-        } else {
-            // سه نقطه مک‌او‌اس
-            drawMacControls(ctx, cardX + 24, headerCenterY);
-        }
-
-        // بج لوگوی RTL View در گوشه راست هدر
         const badgeW = 98;
         const badgeH = 24;
-        const badgeX = cardX + cardW - 20 - badgeW;
         const badgeY = cardY + ((headerHeight - badgeH) / 2);
 
-        ctx.fillStyle = palette.accentBg;
-        roundRect(ctx, badgeX, badgeY, badgeW, badgeH, 6);
-        ctx.fill();
+        if (effectiveStyle === 'windows') {
+            // دکمه‌های کنترل پنجره ویندوز ۱۱ در سمت راست
+            const winControlsWidth = 26 * 3;
+            drawWindowsControls(ctx, cardX + cardW - 16 - winControlsWidth, headerCenterY, palette);
 
-        ctx.font = '600 11.5px "Vazirmatn", sans-serif';
-        ctx.fillStyle = palette.accent;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('RTL View ✦', badgeX + (badgeW / 2), badgeY + (badgeH / 2));
+            // بج RTL View در سمت چپ هدر
+            const badgeX = cardX + 20;
+            ctx.fillStyle = palette.accentBg;
+            roundRect(ctx, badgeX, badgeY, badgeW, badgeH, 6);
+            ctx.fill();
+
+            ctx.font = '600 11.5px "Vazirmatn", sans-serif';
+            ctx.fillStyle = palette.accent;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('RTL View ✦', badgeX + (badgeW / 2), badgeY + (badgeH / 2));
+        } else {
+            // سه نقطه مک‌او‌اس در سمت چپ هدر
+            drawMacControls(ctx, cardX + 24, headerCenterY);
+
+            // بج RTL View در سمت راست هدر
+            const badgeX = cardX + cardW - 20 - badgeW;
+            ctx.fillStyle = palette.accentBg;
+            roundRect(ctx, badgeX, badgeY, badgeW, badgeH, 6);
+            ctx.fill();
+
+            ctx.font = '600 11.5px "Vazirmatn", sans-serif';
+            ctx.fillStyle = palette.accent;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('RTL View ✦', badgeX + (badgeW / 2), badgeY + (badgeH / 2));
+        }
 
         // خط جداکننده زیر هدر
         ctx.strokeStyle = palette.border;
@@ -578,29 +590,6 @@
                 curY += lineHeight;
             }
         }
-
-        // ۵. فوتر کارت
-        const footerY = cardY + cardH - footerHeight;
-        ctx.strokeStyle = palette.border;
-        ctx.lineWidth = 0.8;
-        ctx.beginPath();
-        ctx.moveTo(cardX + 20, footerY);
-        ctx.lineTo(cardX + cardW - 20, footerY);
-        ctx.stroke();
-
-        ctx.font = '400 11.5px "Vazirmatn", sans-serif';
-        ctx.fillStyle = palette.muted;
-        ctx.textBaseline = 'middle';
-
-        // سمت راست فوتر
-        ctx.direction = 'rtl';
-        ctx.textAlign = 'right';
-        ctx.fillText('نمایشگر راست‌چین هوشمند', cardX + cardW - 24, footerY + (footerHeight / 2));
-
-        // سمت چپ فوتر
-        ctx.direction = 'ltr';
-        ctx.textAlign = 'left';
-        ctx.fillText('vazirmatn variable font', cardX + 24, footerY + (footerHeight / 2));
 
         ctx.restore();
     }
