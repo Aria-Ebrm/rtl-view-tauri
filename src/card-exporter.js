@@ -301,7 +301,7 @@
         const outerPadding = 36;
         const innerPaddingX = 32;
         const headerHeight = 46;
-        const bottomPadding = 20;
+        const footerHeight = 32;
         const maxLineWidth = cardLogicalWidth - (innerPaddingX * 2);
 
         const textFontSize = 16.5;
@@ -374,7 +374,7 @@
         }
         totalContentHeight = Math.max(totalContentHeight, 80);
 
-        const cardLogicalHeight = headerHeight + totalContentHeight + bottomPadding;
+        const cardLogicalHeight = headerHeight + totalContentHeight + footerHeight + 12;
         const totalLogicalHeight = cardLogicalHeight + (outerPadding * 2);
         const totalLogicalWidth = cardLogicalWidth + (outerPadding * 2);
 
@@ -590,6 +590,22 @@
                 curY += lineHeight;
             }
         }
+
+        // ۵. فوتر کارت (نمایشگر راست‌چین هوشمند)
+        const footerY = cardY + cardH - footerHeight;
+        ctx.strokeStyle = palette.border;
+        ctx.lineWidth = 0.7;
+        ctx.beginPath();
+        ctx.moveTo(cardX + 24, footerY);
+        ctx.lineTo(cardX + cardW - 24, footerY);
+        ctx.stroke();
+
+        ctx.font = '400 11.5px "Vazirmatn", sans-serif';
+        ctx.fillStyle = palette.muted;
+        ctx.direction = 'rtl';
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('نمایشگر راست‌چین هوشمند', cardX + cardW - 24, footerY + (footerHeight / 2));
 
         ctx.restore();
     }

@@ -1,6 +1,6 @@
 [package]
 name = "rtl-view"
-version = "2.1.2"
+version = "2.1.3"
 description = "Modern, secure, and blazing-fast RTL popup viewer"
 authors = ["RTL View Team"]
 edition = "2021"
