@@ -1,6 +1,6 @@
 {
   "name": "rtl-view",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Ultra-lightweight, blazing-fast, and secure cross-platform RTL popup viewer built with Rust & Tauri v2",
   "main": "src/index.html",
   "scripts": {

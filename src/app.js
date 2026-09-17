@@ -25,6 +25,8 @@
     const btnCancelModal = document.getElementById('btn-cancel-modal');
     const btnCopyCardImg = document.getElementById('btn-copy-card-img');
     const btnSaveCardImg = document.getElementById('btn-save-card-img');
+    const btnStyleWindows = document.getElementById('btn-style-windows');
+    const btnStyleMac = document.getElementById('btn-style-mac');
 
     // وضعیت داخلی (State)
     let currentRawData = null;
@@ -32,6 +34,7 @@
     let digitsPersian = localStorage.getItem('rtl_digits') !== 'false';
     let currentTheme = localStorage.getItem('rtl_theme') || 'zinc';
     let currentFontSize = parseFloat(localStorage.getItem('rtl_font_size')) || 14.5;
+    let currentWindowStyle = localStorage.getItem('rtl_window_style') || (/Macintosh|Mac OS X|iPhone|iPad/.test(navigator.userAgent) ? 'mac' : 'windows');
     let isPinned = false;
 
     // تبدیل ارقام به فارسی برای اعداد رابط کاربری
@@ -227,6 +230,21 @@
         }
     }
 
+    // به‌روزرسانی ظاهر دکمه‌های استایل پنجره
+    function updateStyleSwitcherUI() {
+        if (btnStyleWindows && btnStyleMac) {
+            btnStyleWindows.classList.toggle('active', currentWindowStyle === 'windows');
+            btnStyleMac.classList.toggle('active', currentWindowStyle === 'mac');
+        }
+    }
+
+    // رندر کارت تصویری فعال با حفظ بج‌های کد و استایل انتخابی
+    function renderActiveCard() {
+        if (window.CardExporter && cardCanvas) {
+            window.CardExporter.renderCard(cardCanvas, contentBody.innerHTML, currentTheme, currentWindowStyle);
+        }
+    }
+
     // باز کردن مدال کارت تصویری
     function openCardModal() {
         const text = contentBody.innerText || '';
@@ -234,10 +252,9 @@
             alert('متنی برای ساخت کارت تصویری موجود نیست.');
             return;
         }
+        updateStyleSwitcherUI();
         cardModal.classList.add('open');
-        if (window.CardExporter) {
-            window.CardExporter.renderCard(cardCanvas, text, currentTheme);
-        }
+        renderActiveCard();
     }
 
     function closeCardModal() {
@@ -308,11 +325,29 @@
     // تغییر تم
     themeSelect.addEventListener('change', (e) => {
         setTheme(e.target.value);
-        // اگر مدال کارت باز است، کارت با تم جدید بازتولید شود
-        if (cardModal.classList.contains('open') && window.CardExporter) {
-            window.CardExporter.renderCard(cardCanvas, contentBody.innerText, currentTheme);
+        if (cardModal.classList.contains('open')) {
+            renderActiveCard();
         }
     });
+
+    // سوییچ استایل پنجره (ویندوز یا مک)
+    if (btnStyleWindows) {
+        btnStyleWindows.addEventListener('click', () => {
+            currentWindowStyle = 'windows';
+            localStorage.setItem('rtl_window_style', 'windows');
+            updateStyleSwitcherUI();
+            renderActiveCard();
+        });
+    }
+
+    if (btnStyleMac) {
+        btnStyleMac.addEventListener('click', () => {
+            currentWindowStyle = 'mac';
+            localStorage.setItem('rtl_window_style', 'mac');
+            updateStyleSwitcherUI();
+            renderActiveCard();
+        });
+    }
 
     // کارت تصویری
     btnExportCard.addEventListener('click', openCardModal);

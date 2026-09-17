@@ -456,6 +456,35 @@ code {
     font-weight: 600;
     font-size: 13.5px;
     background-color: var(--bg-header);
+    gap: 12px;
+}
+
+.modal-title-group {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.os-style-switcher {
+    display: flex;
+    gap: 4px;
+    background-color: var(--bg-main);
+    padding: 2px 4px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+}
+
+.os-style-switcher .tool-btn {
+    padding: 2px 8px;
+    font-size: 11px;
+    border-color: transparent;
+    background: transparent;
+}
+
+.os-style-switcher .tool-btn.active {
+    background-color: var(--bg-card);
+    border-color: var(--border-light);
+    color: var(--accent);
 }
 
 .modal-body {
