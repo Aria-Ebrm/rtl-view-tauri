@@ -35,6 +35,14 @@ fn hide_window(window: WebviewWindow) {
 }
 
 #[tauri::command]
+fn toggle_always_on_top(window: WebviewWindow) -> Result<bool, String> {
+    let current = window.is_always_on_top().map_err(|e| e.to_string())?;
+    let next = !current;
+    window.set_always_on_top(next).map_err(|e| e.to_string())?;
+    Ok(next)
+}
+
+#[tauri::command]
 fn toggle_autostart_cmd(app: AppHandle) -> Result<bool, String> {
     let autostart_mgr = app.autolaunch();
     let enabled = autostart_mgr.is_enabled().map_err(|e| e.to_string())?;
@@ -194,7 +202,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             get_current_content,
             hide_window,
-            toggle_autostart_cmd
+            toggle_autostart_cmd,
+            toggle_always_on_top
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

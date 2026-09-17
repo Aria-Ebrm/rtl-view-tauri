@@ -8,12 +8,30 @@
 </head>
 <body>
     <header class="app-header">
-        <div class="header-badge">
-            <span class="dot"></span>
-            <span>نمایشگر راست‌چین (RTL)</span>
+        <div class="header-right">
+            <div class="header-badge">
+                <span class="dot"></span>
+                <span>نمایشگر راست‌چین (RTL)</span>
+            </div>
+            <div class="shortcut-tip">
+                <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>F</kbd>
+            </div>
         </div>
-        <div class="shortcut-tip">
-            <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>F</kbd>
+
+        <div class="header-left">
+            <button id="btn-pin" class="tool-btn" title="سنجاق کردن پنجره در بالا (Always on Top)">📌 پین</button>
+            <button id="btn-font-dec" class="tool-btn" title="کاهش اندازه قلم (Ctrl + -)">A-</button>
+            <button id="btn-font-inc" class="tool-btn" title="افزایش اندازه قلم (Ctrl + +)">A+</button>
+            
+            <select id="theme-select" class="theme-select" title="انتخاب تم رنگی">
+                <option value="zinc">تم Zinc</option>
+                <option value="onedark">تم One Dark</option>
+                <option value="dracula">تم Dracula</option>
+                <option value="gruvbox">تم Gruvbox</option>
+                <option value="light">تم روشن (Light)</option>
+            </select>
+
+            <button id="btn-export-card" class="tool-btn" title="ساخت کارت تصویری برای شبکه‌های اجتماعی">🖼️ کارت عکس</button>
         </div>
     </header>
 
@@ -26,13 +44,38 @@
     <footer class="app-footer">
         <div class="footer-info">
             <span id="char-count">۰ کاراکتر</span>
+            <span>•</span>
+            <span id="word-count">۰ کلمه</span>
         </div>
         <div class="footer-actions">
-            <button id="btn-copy" class="btn btn-secondary" title="کپی متن">کپی متن</button>
+            <button id="btn-virastar" class="btn btn-toggle active" title="اصلاح نیم‌فاصله‌ها و علائم نگارشی">ویراستار ✨</button>
+            <button id="btn-digits" class="btn btn-toggle active" title="سوییچ ارقام فارسی و انگلیسی">ارقام ۱۲۳</button>
+            <button id="btn-clean-copy" class="btn btn-accent" title="کپی متن ویرایش‌شده و مرتب به کلیپ‌بورد">کپی تمیز 📋</button>
+            <button id="btn-copy" class="btn btn-secondary" title="کپی متن خام">کپی خام</button>
             <button id="btn-close" class="btn btn-primary" title="بستن (Esc)">بستن <kbd>Esc</kbd></button>
         </div>
     </footer>
 
+    <!-- مدال پیش‌نمایش و صدور کارت تصویری -->
+    <div id="card-modal" class="modal-backdrop">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <span>ساخت کارت تصویری شبکه اجتماعی</span>
+                <button id="btn-close-modal" class="tool-btn" title="بستن">✕</button>
+            </div>
+            <div class="modal-body">
+                <canvas id="card-canvas"></canvas>
+            </div>
+            <div class="modal-footer">
+                <button id="btn-copy-card-img" class="btn btn-accent" title="کپی مستقیم تصویر در کلیپ‌بورد برای پیست در تلگرام، توییتر و...">کپی عکس در کلیپ‌بورد 📋</button>
+                <button id="btn-save-card-img" class="btn btn-primary" title="ذخیره به عنوان فایل عکس PNG">دانلود تصویر PNG 💾</button>
+                <button id="btn-cancel-modal" class="btn btn-secondary">انصراف</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="virastar.js"></script>
+    <script src="card-exporter.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
