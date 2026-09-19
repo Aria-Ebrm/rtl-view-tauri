@@ -76,22 +76,54 @@
         wordCount.textContent = `${toFaDigits(words)} کلمه`;
     }
 
-    // هایلایت کلمات انگلیسی و کدهای درون خطی
-    function highlightInline(text) {
-        const engRegex = /[a-zA-Z0-9_\-\.\:\/\@\=\\]*[a-zA-Z][a-zA-Z0-9_\-\.\:\/\@\=\\]*/g;
-        return text.replace(engRegex, (match) => {
-            let val = match;
-            let trailing = '';
-            const trailingMatch = val.match(/[\.:,;!?"'\)]+$/);
-            if (trailingMatch) {
-                trailing = trailingMatch[0];
-                val = val.slice(0, -trailing.length);
+    // فرمت‌دهی امن کدهای درون‌خطی (`code`) و لینک‌ها بدون کادر انداختن دور کلمات انگلیسی عادی
+    function formatInline(text) {
+        if (!text) return '';
+
+        let result = '';
+        let lastIndex = 0;
+        const codeRegex = /`([^`\n]+)`/g;
+        let match;
+
+        while ((match = codeRegex.exec(text)) !== null) {
+            const before = text.substring(lastIndex, match.index);
+            if (before) {
+                result += formatTextSegment(before);
             }
-            if (!val || !/[a-zA-Z]/.test(val)) {
-                return escapeHtml(match);
+            const codeVal = match[1];
+            result += `<code class="inline-code">${escapeHtml(codeVal)}</code>`;
+            lastIndex = codeRegex.lastIndex;
+        }
+
+        if (lastIndex < text.length) {
+            result += formatTextSegment(text.substring(lastIndex));
+        }
+
+        return result;
+    }
+
+    function formatTextSegment(str) {
+        // تبدیل لینک‌های اینترنتی به تگ a با جهت ltr
+        const urlRegex = /(https?:\/\/[^\s<>"']+)/g;
+        let out = '';
+        let last = 0;
+        let m;
+
+        while ((m = urlRegex.exec(str)) !== null) {
+            const before = str.substring(last, m.index);
+            if (before) {
+                out += escapeHtml(before);
             }
-            return `<code>${escapeHtml(val)}</code>${escapeHtml(trailing)}`;
-        });
+            const url = m[1];
+            out += `<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" class="text-link" dir="ltr">${escapeHtml(url)}</a>`;
+            last = urlRegex.lastIndex;
+        }
+
+        if (last < str.length) {
+            out += escapeHtml(str.substring(last));
+        }
+
+        return out;
     }
 
     function escapeHtml(str) {
@@ -112,6 +144,35 @@
         return s.startsWith('|') && (s.match(/\|/g) || []).length >= 2;
     }
 
+    // اعمال هوشمند ویراستار همراه با محافظت از کدهای درون‌خطی و بلوک‌های کد
+    function processWithVirastar(text, isVirastarOn, isDigitsFa) {
+        if (!window.Virastar) return text;
+
+        // محافظت از کدهای درون‌خطی `...` و بلوک‌های کد ```...``` تا ارقام یا متن آنها توسط ویراستار تغییر نکند
+        const codeTokens = [];
+        const protectedText = text.replace(/```[\s\S]*?```|`[^`\n]+`/g, (match) => {
+            const token = `__RTL_CODE_TOKEN_${codeTokens.length}__`;
+            codeTokens.push(match);
+            return token;
+        });
+
+        let processed = window.Virastar.process(protectedText, {
+            fixHalfSpace: isVirastarOn,
+            fixPunctuation: isVirastarOn,
+            normalizeChars: isVirastarOn,
+            cleanupSpaces: false, // حفظ ساختار خطوط کاربر
+            digits: isDigitsFa ? 'persian' : 'english',
+        });
+
+        // بازگردانی کدهای درون‌خطی
+        processed = processed.replace(/__RTL_CODE_TOKEN_([0-9۰-۹]+)__/g, (match, idx) => {
+            const enDigits = window.Virastar ? window.Virastar.toEnglishDigits(idx) : idx;
+            return codeTokens[Number(enDigits)] || match;
+        });
+
+        return processed;
+    }
+
     // رندر مجدد محتوا با توجه به سوییچ‌های ویراستار و ارقام
     function renderContent() {
         if (!currentRawData) return;
@@ -125,42 +186,67 @@
             return;
         }
 
-        // استخراج متن متنی جهت پردازش ویراستاری
-        let plain = contentBody.innerText || '';
-        if (currentRawData.plain_text) {
-            plain = currentRawData.plain_text;
-        } else {
+        // استخراج متن خام اصلی
+        let plain = currentRawData.raw_text || currentRawData.plain_text || '';
+        if (!plain) {
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = rawHtml;
             plain = tempDiv.innerText;
         }
 
-        // اعمال ویراستار و تنظیم ارقام در صورت فعال بودن
-        let processedText = plain;
-        if (window.Virastar) {
-            processedText = window.Virastar.process(plain, {
-                fixHalfSpace: virastarEnabled,
-                fixPunctuation: virastarEnabled,
-                normalizeChars: virastarEnabled,
-                cleanupSpaces: false, // حفظ ساختار خطوط کاربر
-                digits: digitsPersian ? 'persian' : 'english',
-            });
+        // در صورت دریافت محتوای غنی HTML
+        if (currentRawData.is_html) {
+            contentBody.innerHTML = rawHtml;
+            updateStats(plain);
+            return;
         }
 
-        // تبدیل متن پردازش شده به بلاک‌های زیبا
+        // اعمال ویراستار و تنظیم ارقام در صورت فعال بودن با محافظت از کدها
+        const processedText = processWithVirastar(plain, virastarEnabled, digitsPersian);
+
+        // تفکیک خطوط به بلوک‌ها: جدول، کد چندخطی، یا پاراگراف متنی
         const lines = processedText.split('\n');
         const blocks = [];
+        let inCodeBlock = false;
         let curType = null;
         let curLines = [];
 
         for (const line of lines) {
-            if (!line.trim()) {
+            const trimmed = line.trim();
+            if (trimmed.startsWith('```')) {
+                if (inCodeBlock) {
+                    if (curLines.length > 0) {
+                        blocks.push({ type: 'code', lines: curLines });
+                        curLines = [];
+                    }
+                    inCodeBlock = false;
+                    curType = null;
+                } else {
+                    if (curLines.length > 0 && curType) {
+                        blocks.push({ type: curType, lines: curLines });
+                        curLines = [];
+                    }
+                    inCodeBlock = true;
+                    curType = 'code';
+                }
+                continue;
+            }
+
+            if (inCodeBlock) {
+                curLines.push(line);
+                continue;
+            }
+
+            if (!trimmed) {
                 if (curLines.length > 0) curLines.push(line);
                 continue;
             }
+
             const t = isTableLine(line) ? 'table' : 'text';
             if (t !== curType) {
-                if (curLines.length > 0) blocks.push({ type: curType, lines: curLines });
+                if (curLines.length > 0 && curType) {
+                    blocks.push({ type: curType, lines: curLines });
+                }
                 curType = t;
                 curLines = [line];
             } else {
@@ -175,8 +261,10 @@
             const joined = b.lines.join('\n');
             if (b.type === 'table') {
                 return `<pre class="table-block">${escapeHtml(joined)}</pre>`;
+            } else if (b.type === 'code') {
+                return `<pre class="code-block" dir="ltr"><code dir="ltr">${escapeHtml(joined)}</code></pre>`;
             } else {
-                return `<pre class="text-block">${highlightInline(joined)}</pre>`;
+                return `<pre class="text-block">${formatInline(joined)}</pre>`;
             }
         });
 
@@ -189,10 +277,13 @@
         if (!data) return;
         currentRawData = data;
         
-        // ذخیره متن خالص برای استفاده در ویراستار و صدور عکس
-        const temp = document.createElement('div');
-        temp.innerHTML = data.html || '';
-        currentRawData.plain_text = temp.innerText;
+        // ذخیره متن خالص برای استفاده در ویراستار، کپی و صدور عکس
+        if (!currentRawData.raw_text) {
+            const temp = document.createElement('div');
+            temp.innerHTML = data.html || '';
+            currentRawData.raw_text = temp.innerText;
+        }
+        currentRawData.plain_text = currentRawData.raw_text;
 
         renderContent();
     }
@@ -300,7 +391,9 @@
     // کپی خام
     btnCopy.addEventListener('click', async () => {
         try {
-            const raw = (currentRawData && currentRawData.plain_text) ? currentRawData.plain_text : contentBody.innerText;
+            const raw = (currentRawData && currentRawData.raw_text) 
+                ? currentRawData.raw_text 
+                : ((currentRawData && currentRawData.plain_text) ? currentRawData.plain_text : contentBody.innerText);
             if (navigator.clipboard) {
                 await navigator.clipboard.writeText(raw);
                 const orig = btnCopy.textContent;

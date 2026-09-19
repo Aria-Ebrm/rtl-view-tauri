@@ -4,7 +4,7 @@ use std::collections::HashSet;
 use std::sync::OnceLock;
 
 static BOX_CHARS: OnceLock<HashSet<char>> = OnceLock::new();
-static ENG_REGEX: OnceLock<Regex> = OnceLock::new();
+static CODE_REGEX: OnceLock<Regex> = OnceLock::new();
 
 fn get_box_chars() -> &'static HashSet<char> {
     BOX_CHARS.get_or_init(|| {
@@ -12,9 +12,9 @@ fn get_box_chars() -> &'static HashSet<char> {
     })
 }
 
-fn get_eng_regex() -> &'static Regex {
-    ENG_REGEX.get_or_init(|| {
-        Regex::new(r#"[a-zA-Z0-9_\-\.\:\/\@\=\\]*[a-zA-Z][a-zA-Z0-9_\-\.\:\/\@\=\\]*"#).unwrap()
+fn get_code_regex() -> &'static Regex {
+    CODE_REGEX.get_or_init(|| {
+        Regex::new(r#"`([^`\n]+)`"#).unwrap()
     })
 }
 
@@ -31,34 +31,23 @@ fn is_table_line(line: &str) -> bool {
     false
 }
 
-/// هایلایت کلمات، مسیرها، URLها و کدهای انگلیسی با حفظ علائم نگارشی متصل به انتهای کلمه
+/// هایلایت کدهای درون‌خطی مارک‌داون (`code`) بدون تغییر دادن کلمات عادی انگلیسی متن
 pub fn highlight_inline(text: &str) -> String {
-    let re = get_eng_regex();
+    let re = get_code_regex();
     let mut result = String::with_capacity(text.len() + 64);
     let mut last_match = 0;
 
     for mat in re.find_iter(text) {
-        // افزودن متن قبل از تطابق (با اسکیپ کردن HTML)
+        // افزودن متن قبل از کد (با اسکیپ کردن HTML)
         result.push_str(&html_escape(&text[last_match..mat.start()]));
 
-        let mut val = mat.as_str();
-        let mut trailing = "";
+        let full = mat.as_str();
+        // حذف بک‌تیک‌های ابتدا و انتها
+        let inner = &full[1..full.len() - 1];
 
-        // جداسازی علائم نگارشی انتهای کلمه که متعلق به متن فارسی هستند
-        let trimmed = val.trim_end_matches(['.', ':', ',', ';', '!', '?', '"', '\'', ')']);
-        if trimmed.len() < val.len() {
-            trailing = &val[trimmed.len()..];
-            val = trimmed;
-        }
-
-        if val.is_empty() || !val.chars().any(|c| c.is_alphabetic()) {
-            result.push_str(&html_escape(mat.as_str()));
-        } else {
-            result.push_str("<code>");
-            result.push_str(&html_escape(val));
-            result.push_str("</code>");
-            result.push_str(&html_escape(trailing));
-        }
+        result.push_str(r#"<code class="inline-code">"#);
+        result.push_str(&html_escape(inner));
+        result.push_str("</code>");
 
         last_match = mat.end();
     }
@@ -99,9 +88,11 @@ pub fn sanitize_html(raw_html: &str) -> String {
 
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 pub struct ProcessedContent {
+    pub raw_text: String,
     pub html: String,
     pub visible_length: usize,
     pub is_empty: bool,
+    pub is_html: bool,
 }
 
 /// پردازش متن ورودی یا قطعه HTML و تولید خروجی کامل
@@ -109,9 +100,11 @@ pub fn process_clipboard_payload(payload: &str, is_html: bool) -> ProcessedConte
     let trimmed = payload.trim();
     if trimmed.is_empty() {
         return ProcessedContent {
+            raw_text: String::new(),
             html: r#"<div class="empty-state">متنی برای نمایش انتخاب نشده است.</div>"#.to_string(),
             visible_length: 0,
             is_empty: true,
+            is_html: false,
         };
     }
 
@@ -120,23 +113,52 @@ pub fn process_clipboard_payload(payload: &str, is_html: bool) -> ProcessedConte
         let text_only = clean.replace(char::is_control, " ");
         let visible_len = text_only.chars().count();
         ProcessedContent {
+            raw_text: text_only,
             html: format!(r#"<div class="html-content">{}</div>"#, clean),
             visible_length: visible_len,
             is_empty: false,
+            is_html: true,
         }
     } else {
         let lines: Vec<&str> = payload.lines().collect();
         let mut blocks: Vec<(&str, Vec<&str>)> = Vec::new();
+        let mut in_code_block = false;
         let mut cur_type = None;
         let mut cur_lines = Vec::new();
 
         for &line in &lines {
-            if line.trim().is_empty() {
+            let line_trimmed = line.trim();
+            if line_trimmed.starts_with("```") {
+                if in_code_block {
+                    if !cur_lines.is_empty() {
+                        blocks.push(("code", cur_lines));
+                        cur_lines = Vec::new();
+                    }
+                    in_code_block = false;
+                    cur_type = None;
+                } else {
+                    if !cur_lines.is_empty() && cur_type.is_some() {
+                        blocks.push((cur_type.unwrap(), cur_lines));
+                        cur_lines = Vec::new();
+                    }
+                    in_code_block = true;
+                    cur_type = Some("code");
+                }
+                continue;
+            }
+
+            if in_code_block {
+                cur_lines.push(line);
+                continue;
+            }
+
+            if line_trimmed.is_empty() {
                 if !cur_lines.is_empty() {
                     cur_lines.push(line);
                 }
                 continue;
             }
+
             let t = if is_table_line(line) { "table" } else { "text" };
             if Some(t) != cur_type {
                 if !cur_lines.is_empty() {
@@ -157,6 +179,8 @@ pub fn process_clipboard_payload(payload: &str, is_html: bool) -> ProcessedConte
             let joined = blines.join("\n");
             if btype == "table" {
                 parts.push(format!(r#"<pre class="table-block">{}</pre>"#, html_escape(&joined)));
+            } else if btype == "code" {
+                parts.push(format!(r#"<pre class="code-block" dir="ltr"><code dir="ltr">{}</code></pre>"#, html_escape(&joined)));
             } else {
                 parts.push(format!(r#"<pre class="text-block">{}</pre>"#, highlight_inline(&joined)));
             }
@@ -166,9 +190,11 @@ pub fn process_clipboard_payload(payload: &str, is_html: bool) -> ProcessedConte
         let visible_len = payload.chars().count();
 
         ProcessedContent {
+            raw_text: payload.to_string(),
             html: rendered,
             visible_length: visible_len,
             is_empty: false,
+            is_html: false,
         }
     }
 }

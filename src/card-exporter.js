@@ -1,5 +1,5 @@
 /**
- * Card Exporter for RTL View - Version 2.1.1
+ * Card Exporter for RTL View - Version 2.1.4
  * Generates beautiful, high-resolution (Retina 2x) social media cards
  * formatted with Vazirmatn font, theme palettes, inline code badges,
  * and adaptive OS window decorations (Windows 11 or macOS).
@@ -137,28 +137,9 @@
             }
         }
 
-        // اگر هیچ تگ code وجود نداشت ولی کلمات انگلیسی موجود بودند، خودمان آن‌ها را تفکیک می‌کنیم
-        let flatTokens = tokens;
-        if (tokens.every(t => !t.isCode)) {
-            flatTokens = [];
-            const fullText = tokens.map(t => t.text).join('');
-            const engRegex = /([a-zA-Z0-9_\-\.\:\/\@\=\\]*[a-zA-Z][a-zA-Z0-9_\-\.\:\/\@\=\\]*)/g;
-            let lastIdx = 0;
-            let engMatch;
-            while ((engMatch = engRegex.exec(fullText)) !== null) {
-                const b = fullText.substring(lastIdx, engMatch.index);
-                if (b) flatTokens.push({ isCode: false, text: b });
-                flatTokens.push({ isCode: true, text: engMatch[1] });
-                lastIdx = engRegex.lastIndex;
-            }
-            if (lastIdx < fullText.length) {
-                flatTokens.push({ isCode: false, text: fullText.substring(lastIdx) });
-            }
-        }
-
-        // تجزیه بخش‌های متنی معمولی به کلمات برای Wrap صحیح
+        // تجزیه بخش‌های متنی معمولی به کلمات برای Wrap صحیح بدون تغییر ماهیت متن
         const atomicItems = [];
-        for (const tok of flatTokens) {
+        for (const tok of tokens) {
             if (tok.isCode) {
                 atomicItems.push(tok);
             } else {
@@ -198,7 +179,7 @@
         }
 
         for (const el of children) {
-            if (el.classList.contains('table-block')) {
+            if (el.classList.contains('table-block') || el.classList.contains('code-block')) {
                 blocks.push({
                     type: 'table',
                     text: el.innerText
@@ -507,24 +488,48 @@
                 const fullLineText = line.items.map(i => i.text).join(' ');
                 const isLineRtl = hasPersian(fullLineText);
 
+                // تجمیع کلمات متوالی غیرکد به یک رشته واحد برای تضمین اجرای کامل الگوریتم BiDi
+                const runs = [];
+                let currentWords = [];
+
+                for (const item of line.items) {
+                    if (item.isCode) {
+                        if (currentWords.length > 0) {
+                            const joined = currentWords.join(' ');
+                            ctx.font = textFont;
+                            runs.push({ isCode: false, text: joined, width: ctx.measureText(joined).width });
+                            currentWords = [];
+                        }
+                        runs.push(item);
+                    } else {
+                        currentWords.push(item.text);
+                    }
+                }
+                if (currentWords.length > 0) {
+                    const joined = currentWords.join(' ');
+                    ctx.font = textFont;
+                    runs.push({ isCode: false, text: joined, width: ctx.measureText(joined).width });
+                }
+
                 if (isLineRtl) {
                     // جریان راست‌به‌چپ (RTL) - متن از حاشیه راست شروع می‌شود
                     let curX = rightMargin;
 
-                    for (const item of line.items) {
-                        if (item.isCode) {
+                    for (let rIdx = 0; rIdx < runs.length; rIdx++) {
+                        const run = runs[rIdx];
+                        if (run.isCode) {
                             // بج کد درون‌خطی
                             const badgeH = 23;
                             const badgeY = curY + ((lineHeight - badgeH) / 2) - 3;
-                            const badgeX = curX - item.width;
+                            const badgeX = curX - run.width;
 
                             ctx.fillStyle = palette.codeBg;
-                            roundRect(ctx, badgeX, badgeY, item.width, badgeH, 5);
+                            roundRect(ctx, badgeX, badgeY, run.width, badgeH, 5);
                             ctx.fill();
 
                             ctx.strokeStyle = palette.codeBorder;
                             ctx.lineWidth = 1;
-                            roundRect(ctx, badgeX, badgeY, item.width, badgeH, 5);
+                            roundRect(ctx, badgeX, badgeY, run.width, badgeH, 5);
                             ctx.stroke();
 
                             ctx.font = codeFont;
@@ -532,38 +537,45 @@
                             ctx.direction = 'ltr';
                             ctx.textAlign = 'center';
                             ctx.textBaseline = 'middle';
-                            ctx.fillText(item.text, badgeX + (item.width / 2), badgeY + (badgeH / 2));
+                            ctx.fillText(run.text, badgeX + (run.width / 2), badgeY + (badgeH / 2));
 
-                            curX -= item.width + spaceWidth;
+                            curX -= run.width;
+                            if (rIdx < runs.length - 1) {
+                                curX -= spaceWidth;
+                            }
                         } else {
-                            // کلمه متنی فارسی
+                            // رشته متنی پیوسته فارسی/انگلیسی با اجرای صحیح BiDi توسط سیستم‌عامل
                             ctx.font = textFont;
                             ctx.fillStyle = palette.text;
                             ctx.direction = 'rtl';
                             ctx.textAlign = 'right';
                             ctx.textBaseline = 'middle';
-                            ctx.fillText(item.text, curX, curY + (lineHeight / 2) - 2);
+                            ctx.fillText(run.text, curX, curY + (lineHeight / 2) - 2);
 
-                            curX -= item.width + spaceWidth;
+                            curX -= run.width;
+                            if (rIdx < runs.length - 1) {
+                                curX -= spaceWidth;
+                            }
                         }
                     }
                 } else {
                     // خط کاملاً انگلیسی (مثلاً لینک‌ها یا کدهای مستقل)
                     let curX = leftMargin;
 
-                    for (const item of line.items) {
-                        if (item.isCode) {
+                    for (let rIdx = 0; rIdx < runs.length; rIdx++) {
+                        const run = runs[rIdx];
+                        if (run.isCode) {
                             const badgeH = 23;
                             const badgeY = curY + ((lineHeight - badgeH) / 2) - 3;
                             const badgeX = curX;
 
                             ctx.fillStyle = palette.codeBg;
-                            roundRect(ctx, badgeX, badgeY, item.width, badgeH, 5);
+                            roundRect(ctx, badgeX, badgeY, run.width, badgeH, 5);
                             ctx.fill();
 
                             ctx.strokeStyle = palette.codeBorder;
                             ctx.lineWidth = 1;
-                            roundRect(ctx, badgeX, badgeY, item.width, badgeH, 5);
+                            roundRect(ctx, badgeX, badgeY, run.width, badgeH, 5);
                             ctx.stroke();
 
                             ctx.font = codeFont;
@@ -571,18 +583,24 @@
                             ctx.direction = 'ltr';
                             ctx.textAlign = 'center';
                             ctx.textBaseline = 'middle';
-                            ctx.fillText(item.text, badgeX + (item.width / 2), badgeY + (badgeH / 2));
+                            ctx.fillText(run.text, badgeX + (run.width / 2), badgeY + (badgeH / 2));
 
-                            curX += item.width + spaceWidth;
+                            curX += run.width;
+                            if (rIdx < runs.length - 1) {
+                                curX += spaceWidth;
+                            }
                         } else {
                             ctx.font = textFont;
                             ctx.fillStyle = palette.text;
                             ctx.direction = 'ltr';
                             ctx.textAlign = 'left';
                             ctx.textBaseline = 'middle';
-                            ctx.fillText(item.text, curX, curY + (lineHeight / 2) - 2);
+                            ctx.fillText(run.text, curX, curY + (lineHeight / 2) - 2);
 
-                            curX += item.width + spaceWidth;
+                            curX += run.width;
+                            if (rIdx < runs.length - 1) {
+                                curX += spaceWidth;
+                            }
                         }
                     }
                 }

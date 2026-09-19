@@ -255,8 +255,8 @@ blockquote {
     color: var(--text-muted);
 }
 
-/* کلمات و عبارات انگلیسی */
-code {
+/* کدهای درون‌خطی مارک‌داون */
+code, .inline-code {
     font-family: 'Consolas', 'Courier New', monospace;
     background-color: var(--bg-card);
     color: var(--accent);
@@ -266,8 +266,46 @@ code {
     border: 1px solid var(--border);
     unicode-bidi: isolate;
     direction: ltr;
-    display: inline-block;
-    vertical-align: baseline;
+    display: inline;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+}
+
+/* لینک‌های درون متنی */
+.text-link {
+    color: var(--accent);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    direction: ltr;
+    unicode-bidi: isolate;
+}
+
+.text-link:hover {
+    opacity: 0.8;
+}
+
+/* بلوک‌های کد چندخطی */
+.code-block {
+    font-family: 'Consolas', 'Courier New', monospace;
+    white-space: pre;
+    direction: ltr;
+    text-align: left;
+    background-color: var(--table-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px;
+    margin: 10px 0;
+    font-size: 13px;
+    line-height: 1.45;
+    overflow-x: auto;
+}
+
+.code-block code {
+    background: transparent;
+    border: none;
+    padding: 0;
+    color: inherit;
+    font-size: inherit;
 }
 
 /* جدول‌ها */

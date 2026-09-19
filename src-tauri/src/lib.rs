@@ -18,6 +18,7 @@ static CURRENT_CONTENT: Mutex<Option<ProcessedContent>> = Mutex::new(None);
 fn get_current_content() -> ProcessedContent {
     let lock = CURRENT_CONTENT.lock().unwrap();
     lock.clone().unwrap_or_else(|| ProcessedContent {
+        raw_text: String::new(),
         html: r#"<div class="empty-state" style="text-align: center; padding: 24px 16px;">
             <div style="font-size: 20px; font-weight: bold; margin-bottom: 12px; color: #60a5fa;">برنامه RTL View فعال است ✔</div>
             <p style="color: #cbd5e1; margin-bottom: 12px; font-size: 14px;">متن دلخواه خود را در هر برنامه‌ای انتخاب کنید و کلیدهای میانبر زیر را فشار دهید:</p>
@@ -26,6 +27,7 @@ fn get_current_content() -> ProcessedContent {
         </div>"#.to_string(),
         visible_length: 0,
         is_empty: false,
+        is_html: false,
     })
 }
 
