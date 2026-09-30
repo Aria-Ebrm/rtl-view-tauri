@@ -1,12 +1,14 @@
 /**
- * Card Exporter for RTL View - Version 2.1.4
+ * Card Exporter for RTL View - Version 2.2.0
  * Generates beautiful, high-resolution (Retina 2x) social media cards
  * formatted with Vazirmatn font, theme palettes, inline code badges,
  * and adaptive OS window decorations (Windows 11 or macOS).
  */
 
-(function(window) {
+(function(globalScope) {
     'use strict';
+
+    const root = globalScope || (typeof window !== 'undefined' ? window : (typeof globalThis !== 'undefined' ? globalThis : this));
 
     const THEME_PALETTES = {
         zinc: {
@@ -96,22 +98,51 @@
     }
 
     function decodeHtml(str) {
+        if (!str) return '';
         return str
             .replace(/&amp;/g, '&')
             .replace(/&lt;/g, '<')
             .replace(/&gt;/g, '>')
             .replace(/&quot;/g, '"')
-            .replace(/&#39;/g, "'");
+            .replace(/&#39;/g, "'")
+            .replace(/&nbsp;/g, ' ');
+    }
+
+    function stripHtmlTags(str) {
+        if (!str) return '';
+        return str.replace(/<[^>]*>/g, '');
+    }
+
+    const RTL_REGEX = /[\u0590-\u05FF\u0600-\u06FF\u0700-\u07BF\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF\u200F\u2067]/;
+    const LTR_REGEX = /[A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02B8\u0370-\u03FF\u0400-\u04FF\u200E\u2066]/;
+
+    /**
+     * Determines base paragraph/line direction using Unicode Bidirectional Algorithm
+     * (UAX #9 rules P2/P3: based on the first strong directional character).
+     */
+    function getBaseDirection(text) {
+        if (!text) return 'ltr';
+        for (let i = 0; i < text.length; i++) {
+            const ch = text[i];
+            if (RTL_REGEX.test(ch)) return 'rtl';
+            if (LTR_REGEX.test(ch)) return 'ltr';
+        }
+        return 'ltr';
+    }
+
+    function isRtlLine(text) {
+        return getBaseDirection(text) === 'rtl';
     }
 
     function hasPersian(text) {
-        return /[\u0600-\u06FF]/.test(text);
+        return /[\u0600-\u06FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(text || '');
     }
 
     /**
-     * تفکیک یک خط به کلمات معمولی و کدهای درون‌خطی با حفظ ساختار
+     * تفکیک یک خط به کلمات معمولی و کدهای درون‌خطی با حذف تمام تگ‌های غیرکد HTML
      */
     function parseLineTokens(htmlLine) {
+        if (!htmlLine) return [];
         const tokens = [];
         // شناسایی تگ‌های code
         const codeRegex = /<code[^>]*>([\s\S]*?)<\/code>/gi;
@@ -121,9 +152,12 @@
         while ((match = codeRegex.exec(htmlLine)) !== null) {
             const before = htmlLine.substring(lastIndex, match.index);
             if (before) {
-                tokens.push({ isCode: false, text: decodeHtml(before) });
+                const cleanedBefore = stripHtmlTags(before);
+                if (cleanedBefore) {
+                    tokens.push({ isCode: false, text: decodeHtml(cleanedBefore) });
+                }
             }
-            const codeVal = decodeHtml(match[1]);
+            const codeVal = decodeHtml(stripHtmlTags(match[1]));
             if (codeVal) {
                 tokens.push({ isCode: true, text: codeVal });
             }
@@ -133,7 +167,10 @@
         if (lastIndex < htmlLine.length) {
             const after = htmlLine.substring(lastIndex);
             if (after) {
-                tokens.push({ isCode: false, text: decodeHtml(after) });
+                const cleanedAfter = stripHtmlTags(after);
+                if (cleanedAfter) {
+                    tokens.push({ isCode: false, text: decodeHtml(cleanedAfter) });
+                }
             }
         }
 
@@ -157,19 +194,26 @@
     }
 
     /**
-     * استخراج بلوک‌ها از منبع HTML پنجره
+     * استخراج بلوک‌ها از منبع HTML پنجره با حذف تگ‌های زائد
      */
     function extractBlocks(htmlSource) {
         const blocks = [];
-        const container = document.createElement('div');
-        container.innerHTML = htmlSource;
+        if (!htmlSource) return blocks;
 
-        const children = Array.from(container.children);
+        let container;
+        if (typeof document !== 'undefined' && document.createElement) {
+            container = document.createElement('div');
+            container.innerHTML = htmlSource;
+        }
+
+        const children = (container && container.children) ? Array.from(container.children) : [];
         if (children.length === 0) {
             // متن ساده
-            const lines = container.innerText.split('\n');
+            const textContent = container ? (container.innerText || container.textContent || htmlSource) : htmlSource;
+            const lines = textContent.split(/\r?\n/);
             for (const line of lines) {
-                if (!line.trim()) {
+                const trimmed = line.trim();
+                if (!trimmed) {
                     blocks.push({ type: 'empty' });
                 } else {
                     blocks.push({ type: 'text', items: parseLineTokens(line) });
@@ -179,14 +223,14 @@
         }
 
         for (const el of children) {
-            if (el.classList.contains('table-block') || el.classList.contains('code-block')) {
+            if (el.classList && (el.classList.contains('table-block') || el.classList.contains('code-block'))) {
                 blocks.push({
                     type: 'table',
-                    text: el.innerText
+                    text: el.innerText || el.textContent || ''
                 });
             } else {
                 // بلوک متنی یا پاراگراف
-                const rawHtml = el.innerHTML;
+                const rawHtml = el.innerHTML || el.innerText || el.textContent || '';
                 const lines = rawHtml.split(/\n|<br\s*\/?>/i);
                 for (const lineHtml of lines) {
                     const trimmed = lineHtml.trim();
@@ -262,19 +306,62 @@
     }
 
     /**
+     * تقسیم توکن‌های یکپارچه و بسیار طویل به قطعات کوچکتری که از عرض خط تجاوز نکنند
+     */
+    function splitOversizedItem(item, ctx, font, maxW) {
+        ctx.font = font;
+        const padding = item.isCode ? 14 : 0;
+        const fullW = ctx.measureText(item.text).width + padding;
+        if (fullW <= maxW || item.text.length <= 1) {
+            return [{ ...item, width: fullW }];
+        }
+
+        const subItems = [];
+        const chars = Array.from(item.text);
+        let curStr = '';
+
+        for (let i = 0; i < chars.length; i++) {
+            const nextStr = curStr + chars[i];
+            const nextW = ctx.measureText(nextStr).width + padding;
+            if (nextW > maxW && curStr.length > 0) {
+                const curW = ctx.measureText(curStr).width + padding;
+                subItems.push({ isCode: item.isCode, text: curStr, width: curW });
+                curStr = chars[i];
+            } else {
+                curStr = nextStr;
+            }
+        }
+        if (curStr.length > 0) {
+            const curW = ctx.measureText(curStr).width + padding;
+            subItems.push({ isCode: item.isCode, text: curStr, width: curW });
+        }
+        return subItems;
+    }
+
+    /**
      * رندر کامل کارت روی Canvas با وضوح بالا
      */
-    function renderCard(canvas, htmlSource, themeName = 'zinc', windowStyle = 'auto') {
+    async function renderCard(canvas, htmlSource, themeName = 'zinc', windowStyle = 'auto') {
         if (!canvas) return;
+
+        // انتظار برای لود کامل فونت‌ها جهت جلوگیری از محاسبه ابعاد نادرست
+        if (typeof document !== 'undefined' && document.fonts && document.fonts.ready) {
+            try {
+                await document.fonts.ready;
+            } catch (_) {
+                // در صورت بروز خطا در لود فونت، با فونت‌های سیستم ادامه می‌یابد
+            }
+        }
 
         const palette = THEME_PALETTES[themeName] || THEME_PALETTES.zinc;
         const ctx = canvas.getContext('2d');
+        if (!ctx) return;
         const scale = 2; // کیفیت بالای Retina
 
         // تشخیص سیستم‌عامل در حالت auto
         let effectiveStyle = windowStyle;
         if (effectiveStyle === 'auto') {
-            const isMac = /Macintosh|Mac OS X|iPhone|iPad/.test(navigator.userAgent);
+            const isMac = (typeof navigator !== 'undefined') && /Macintosh|Mac OS X|iPhone|iPad/.test(navigator.userAgent);
             effectiveStyle = isMac ? 'mac' : 'windows';
         }
 
@@ -283,13 +370,19 @@
         const innerPaddingX = 32;
         const headerHeight = 46;
         const footerHeight = 32;
-        const maxLineWidth = cardLogicalWidth - (innerPaddingX * 2);
+        const maxLineWidth = 500; // عرض استاندارد ستون متن برای خوانایی بهینه و جلوگیری از سرریز
+
+        // سقف ابعاد مجاز برای جلوگیری از خطای بافر GPU و کرش کرومیوم در متون حجیم
+        const maxLogicalHeight = 4096; // حداکثر ارتفاع فیزیکی ۸۱۹۲ در مقیاس رتینا ۲
+        const maxContentHeight = maxLogicalHeight - (outerPadding * 2) - headerHeight - footerHeight - 12;
 
         const textFontSize = 16.5;
         const textFont = `450 ${textFontSize}px "Vazirmatn", -apple-system, BlinkMacSystemFont, sans-serif`;
         const codeFontSize = 13.5;
         const codeFont = `550 ${codeFontSize}px Consolas, "Courier New", monospace`;
         const lineHeight = 36;
+        const truncatedNoticeText = '... [متن ادامه دارد]';
+        const truncationNoticeHeight = lineHeight;
 
         // آماده‌سازی بلوک‌های محتوا
         const blocks = extractBlocks(htmlSource);
@@ -299,17 +392,43 @@
         const spaceWidth = ctx.measureText(' ').width;
 
         const wrappedBlocks = [];
+        let accumulatedContentHeight = 0;
+        let isTruncated = false;
 
         for (const b of blocks) {
+            if (accumulatedContentHeight + lineHeight + truncationNoticeHeight > maxContentHeight) {
+                isTruncated = true;
+                break;
+            }
+
             if (b.type === 'empty') {
-                wrappedBlocks.push({ type: 'empty', height: 16 });
+                const h = 16;
+                if (accumulatedContentHeight + h + truncationNoticeHeight > maxContentHeight) {
+                    isTruncated = true;
+                    break;
+                }
+                wrappedBlocks.push({ type: 'empty', height: h });
+                accumulatedContentHeight += h;
                 continue;
             }
 
             if (b.type === 'table') {
                 const lines = b.text.split('\n');
                 const tableH = (lines.length * 20) + 24;
+                if (accumulatedContentHeight + tableH + truncationNoticeHeight > maxContentHeight) {
+                    const allowedLines = Math.max(1, Math.floor((maxContentHeight - accumulatedContentHeight - 24 - truncationNoticeHeight) / 20));
+                    if (allowedLines < lines.length) {
+                        const truncatedLines = lines.slice(0, allowedLines);
+                        truncatedLines.push('... [ادامه جدول کوتاه شد]');
+                        const partialH = (truncatedLines.length * 20) + 24;
+                        wrappedBlocks.push({ type: 'table', textLines: truncatedLines, height: partialH });
+                        accumulatedContentHeight += partialH;
+                        isTruncated = true;
+                        break;
+                    }
+                }
                 wrappedBlocks.push({ type: 'table', textLines: lines, height: tableH });
+                accumulatedContentHeight += tableH;
                 continue;
             }
 
@@ -318,20 +437,29 @@
             let currentLine = [];
             let currentLineWidth = 0;
 
+            // تفکیک توکن‌های بیش‌از‌حد عریض
+            const processedItems = [];
             for (const item of b.items) {
-                let itemW = 0;
-                if (item.isCode) {
-                    ctx.font = codeFont;
-                    itemW = ctx.measureText(item.text).width + 14; // پدینگ چپ و راست بج
-                } else {
-                    ctx.font = textFont;
-                    itemW = ctx.measureText(item.text).width;
+                const font = item.isCode ? codeFont : textFont;
+                const subs = splitOversizedItem(item, ctx, font, maxLineWidth);
+                for (const sub of subs) {
+                    processedItems.push(sub);
                 }
+            }
 
+            let blockTruncated = false;
+            for (const item of processedItems) {
+                const itemW = item.width;
                 const needed = currentLine.length > 0 ? (spaceWidth + itemW) : itemW;
 
                 if (currentLineWidth + needed > maxLineWidth && currentLine.length > 0) {
+                    if (accumulatedContentHeight + lineHeight + truncationNoticeHeight > maxContentHeight) {
+                        blockTruncated = true;
+                        isTruncated = true;
+                        break;
+                    }
                     lines.push({ items: currentLine, width: currentLineWidth });
+                    accumulatedContentHeight += lineHeight;
                     currentLine = [{ ...item, width: itemW }];
                     currentLineWidth = itemW;
                 } else {
@@ -340,12 +468,44 @@
                 }
             }
 
-            if (currentLine.length > 0) {
-                lines.push({ items: currentLine, width: currentLineWidth });
+            if (blockTruncated) {
+                if (lines.length > 0) {
+                    const blockH = lines.length * lineHeight;
+                    wrappedBlocks.push({ type: 'text', lines, height: blockH });
+                }
+                break;
             }
 
-            const blockH = lines.length * lineHeight;
-            wrappedBlocks.push({ type: 'text', lines, height: blockH });
+            if (currentLine.length > 0) {
+                if (accumulatedContentHeight + lineHeight + truncationNoticeHeight > maxContentHeight) {
+                    isTruncated = true;
+                } else {
+                    lines.push({ items: currentLine, width: currentLineWidth });
+                    accumulatedContentHeight += lineHeight;
+                }
+            }
+
+            if (lines.length > 0) {
+                const blockH = lines.length * lineHeight;
+                wrappedBlocks.push({ type: 'text', lines, height: blockH });
+            }
+
+            if (isTruncated) {
+                break;
+            }
+        }
+
+        if (isTruncated) {
+            wrappedBlocks.push({
+                type: 'text',
+                isTruncationNotice: true,
+                lines: [{
+                    items: [{ isCode: false, text: truncatedNoticeText }],
+                    width: 0
+                }],
+                height: truncationNoticeHeight
+            });
+            accumulatedContentHeight += truncationNoticeHeight;
         }
 
         // محاسبه ارتفاع کل
@@ -356,7 +516,7 @@
         totalContentHeight = Math.max(totalContentHeight, 80);
 
         const cardLogicalHeight = headerHeight + totalContentHeight + footerHeight + 12;
-        const totalLogicalHeight = cardLogicalHeight + (outerPadding * 2);
+        const totalLogicalHeight = Math.min(cardLogicalHeight + (outerPadding * 2), maxLogicalHeight);
         const totalLogicalWidth = cardLogicalWidth + (outerPadding * 2);
 
         canvas.width = totalLogicalWidth * scale;
@@ -366,6 +526,9 @@
 
         ctx.save();
         ctx.scale(scale, scale);
+
+        // پاکسازی کامل بافر تصویر قبلی برای جلوگیری از نشت حافظه
+        ctx.clearRect(0, 0, totalLogicalWidth, totalLogicalHeight);
 
         // ۱. گرادیانت بیرونی
         const grad = ctx.createLinearGradient(0, 0, totalLogicalWidth, totalLogicalHeight);
@@ -453,6 +616,17 @@
                 continue;
             }
 
+            if (wb.isTruncationNotice) {
+                ctx.font = 'italic 500 13px "Vazirmatn", sans-serif';
+                ctx.fillStyle = palette.muted;
+                ctx.direction = 'rtl';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(truncatedNoticeText, cardX + (cardW / 2), curY + (lineHeight / 2) - 2);
+                curY += wb.height;
+                continue;
+            }
+
             if (wb.type === 'table') {
                 // رسم بلوک جدول
                 const tablePadding = 12;
@@ -466,6 +640,12 @@
                 roundRect(ctx, leftMargin, curY, tableW, wb.height - 8, 6);
                 ctx.stroke();
 
+                // کلیپ کردن محتوا داخل کادر جدول برای جلوگیری از سرریز
+                ctx.save();
+                ctx.beginPath();
+                roundRect(ctx, leftMargin, curY, tableW, wb.height - 8, 6);
+                ctx.clip();
+
                 ctx.font = '500 12.5px Consolas, monospace';
                 ctx.fillStyle = palette.text;
                 ctx.direction = 'ltr';
@@ -477,6 +657,7 @@
                     ctx.fillText(tline, leftMargin + tablePadding, tY);
                     tY += 20;
                 }
+                ctx.restore();
 
                 curY += wb.height;
                 continue;
@@ -484,9 +665,9 @@
 
             // رسم خطوط متنی
             for (const line of wb.lines) {
-                // بررسی اینکه آیا خط کاملاً انگلیسی است یا متن فارسی دارد
+                // جهت پایه خط بر اساس استاندارد یونی‌کد P2/P3 (اولین کاراکتر جهت‌دار قوی)
                 const fullLineText = line.items.map(i => i.text).join(' ');
-                const isLineRtl = hasPersian(fullLineText);
+                const isLineRtl = isRtlLine(fullLineText);
 
                 // تجمیع کلمات متوالی غیرکد به یک رشته واحد برای تضمین اجرای کامل الگوریتم BiDi
                 const runs = [];
@@ -559,7 +740,7 @@
                         }
                     }
                 } else {
-                    // خط کاملاً انگلیسی (مثلاً لینک‌ها یا کدهای مستقل)
+                    // خط کاملاً چپ‌به‌راست (مانند خطوط کد، لینک‌ها، یا انگلیسی با کامنت فارسی)
                     let curX = leftMargin;
 
                     for (let rIdx = 0; rIdx < runs.length; rIdx++) {
@@ -629,6 +810,19 @@
     }
 
     /**
+     * رندر کارت فعال روی بوم متصل به DOM
+     */
+    async function renderActiveCard() {
+        if (typeof document === 'undefined') return;
+        const canvas = document.getElementById('card-canvas');
+        const contentBody = document.getElementById('content-body');
+        if (!canvas || !contentBody) return;
+        const theme = (typeof currentTheme !== 'undefined' ? currentTheme : 'zinc');
+        const style = (typeof currentWindowStyle !== 'undefined' ? currentWindowStyle : 'auto');
+        return await renderCard(canvas, contentBody.innerHTML, theme, style);
+    }
+
+    /**
      * کپی تصویر کارت به کلیپ‌بورد
      */
     async function copyToClipboard(canvas) {
@@ -641,10 +835,14 @@
                     return;
                 }
                 try {
-                    await navigator.clipboard.write([
-                        new ClipboardItem({ 'image/png': blob })
-                    ]);
-                    resolve(true);
+                    if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.write) {
+                        await navigator.clipboard.write([
+                            new ClipboardItem({ 'image/png': blob })
+                        ]);
+                        resolve(true);
+                    } else {
+                        reject(new Error('Clipboard API not available'));
+                    }
                 } catch (err) {
                     reject(err);
                 }
@@ -664,13 +862,30 @@
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+        link.href = '';
     }
 
-    window.CardExporter = {
+    const CardExporter = {
         renderCard,
+        renderActiveCard,
         copyToClipboard,
         downloadImage,
-        THEME_PALETTES
+        extractBlocks,
+        parseLineTokens,
+        THEME_PALETTES,
+        hasPersian,
+        getBaseDirection,
+        isRtlLine
     };
 
-})(window);
+    if (typeof window !== 'undefined') {
+        window.CardExporter = CardExporter;
+    }
+    if (typeof root !== 'undefined') {
+        root.CardExporter = CardExporter;
+    }
+    if (typeof module !== 'undefined' && module.exports) {
+        module.exports = { CardExporter, ...CardExporter };
+    }
+
+})(typeof window !== 'undefined' ? window : (typeof globalThis !== 'undefined' ? globalThis : this));

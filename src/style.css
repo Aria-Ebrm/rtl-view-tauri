@@ -7,89 +7,168 @@
     font-display: swap;
 }
 
-/* ==========================================
-   تم‌ها (Theme Palettes)
-   ========================================== */
+/* ==========================================================================
+   Vercel Geist Design System Tokens (DESIGN-vercel.md)
+   Stark developer aesthetic · 1px hairline borders · 6px rounded controls
+   ========================================================================== */
 
 :root, [data-theme="zinc"] {
-    --bg-main: #18181b;
-    --bg-card: #27272a;
-    --bg-header: #202024;
-    --text-main: #f4f4f5;
-    --text-muted: #a1a1aa;
-    --accent: #fbbf24;
-    --accent-bg: rgba(251, 191, 36, 0.12);
-    --border: #3f3f46;
-    --border-light: #52525b;
-    --table-bg: #1f1f23;
-    --shadow: rgba(0, 0, 0, 0.5);
-}
-
-[data-theme="onedark"] {
-    --bg-main: #21252b;
-    --bg-card: #282c34;
-    --bg-header: #1e2227;
-    --text-main: #abb2bf;
-    --text-muted: #6b727d;
-    --accent: #61afef;
-    --accent-bg: rgba(97, 175, 239, 0.14);
-    --border: #3b4048;
-    --border-light: #4b5263;
-    --table-bg: #1f2329;
-    --shadow: rgba(0, 0, 0, 0.55);
-}
-
-[data-theme="dracula"] {
-    --bg-main: #21222c;
-    --bg-card: #282a36;
-    --bg-header: #191a21;
-    --text-main: #f8f8f2;
-    --text-muted: #6272a4;
-    --accent: #bd93f9;
-    --accent-bg: rgba(189, 147, 249, 0.15);
-    --border: #44475a;
-    --border-light: #6272a4;
-    --table-bg: #1e1f29;
+    /* Vercel Geist Dark */
+    --bg-canvas: #000000;
+    --bg-main: #000000;
+    --bg-header: #0a0a0a;
+    --bg-elevated: #111111;
+    --bg-card: #111111;
+    --bg-surface: #171717;
+    --bg-surface-hover: #1f1f1f;
+    --border: #242424;
+    --border-light: #2e2e2e;
+    --border-focus: #0070f3;
+    
+    --text-ink: #ededed;
+    --text-main: #ededed;
+    --text-body: #a1a1a1;
+    --text-muted: #888888;
+    --text-faint: #52525b;
+    
+    --accent: #0070f3;
+    --accent-deep: #0761d1;
+    --accent-bg: rgba(0, 112, 243, 0.12);
+    --table-bg: #0c0c0c;
+    --shadow-whisper: 0px 1px 2px rgba(0, 0, 0, 0.5);
+    --shadow-floating: 0px 4px 20px rgba(0, 0, 0, 0.7);
     --shadow: rgba(0, 0, 0, 0.6);
-}
-
-[data-theme="gruvbox"] {
-    --bg-main: #1d2021;
-    --bg-card: #282828;
-    --bg-header: #141617;
-    --text-main: #ebdbb2;
-    --text-muted: #928374;
-    --accent: #fabd2f;
-    --accent-bg: rgba(250, 189, 47, 0.15);
-    --border: #3c3836;
-    --border-light: #504945;
-    --table-bg: #222020;
-    --shadow: rgba(0, 0, 0, 0.55);
+    
+    --mesh-gradient: linear-gradient(135deg, #007cf0 0%, #7928ca 50%, #ff0080 100%);
+    --brand-dot: #00dfd8;
 }
 
 [data-theme="light"] {
-    --bg-main: #f8fafc;
+    /* Vercel Geist Light (Exact DESIGN-vercel.md specification) */
+    --bg-canvas: #fafafa;
+    --bg-main: #fafafa;
+    --bg-header: #ffffff;
+    --bg-elevated: #ffffff;
     --bg-card: #ffffff;
-    --bg-header: #f1f5f9;
-    --text-main: #0f172a;
-    --text-muted: #64748b;
-    --accent: #2563eb;
-    --accent-bg: rgba(37, 99, 235, 0.10);
-    --border: #e2e8f0;
-    --border-light: #cbd5e1;
-    --table-bg: #f8fafc;
-    --shadow: rgba(15, 23, 42, 0.12);
+    --bg-surface: #f4f4f5;
+    --bg-surface-hover: #eaeaea;
+    --border: #ebebeb;
+    --border-light: #d4d4d8;
+    --border-focus: #0070f3;
+    
+    --text-ink: #171717;
+    --text-main: #171717;
+    --text-body: #4d4d4d;
+    --text-muted: #8f8f8f;
+    --text-faint: #a1a1a1;
+    
+    --accent: #0070f3;
+    --accent-deep: #0761d1;
+    --accent-bg: rgba(0, 112, 243, 0.08);
+    --table-bg: #f9f9fb;
+    --shadow-whisper: 0px 1px 1px rgba(0, 0, 0, 0.04);
+    --shadow-floating: 0px 4px 16px -2px rgba(0, 0, 0, 0.12);
+    --shadow: rgba(0, 0, 0, 0.08);
+    
+    --mesh-gradient: linear-gradient(135deg, #007cf0 0%, #7928ca 50%, #ff0080 100%);
+    --brand-dot: #0070f3;
 }
+
+[data-theme="onedark"] {
+    --bg-canvas: #1e2227;
+    --bg-main: #21252b;
+    --bg-header: #1b1f24;
+    --bg-elevated: #282c34;
+    --bg-card: #282c34;
+    --bg-surface: #2c313a;
+    --bg-surface-hover: #353b45;
+    --border: #3b4048;
+    --border-light: #4b5263;
+    --border-focus: #61afef;
+    --text-ink: #d7dae0;
+    --text-main: #abb2bf;
+    --text-body: #abb2bf;
+    --text-muted: #6b727d;
+    --text-faint: #52565e;
+    --accent: #61afef;
+    --accent-deep: #4d8cc7;
+    --accent-bg: rgba(97, 175, 239, 0.14);
+    --table-bg: #1f2329;
+    --shadow-whisper: 0px 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-floating: 0px 4px 20px rgba(0, 0, 0, 0.6);
+    --shadow: rgba(0, 0, 0, 0.55);
+    --mesh-gradient: linear-gradient(135deg, #61afef 0%, #c678dd 50%, #e06c75 100%);
+    --brand-dot: #98c379;
+}
+
+[data-theme="dracula"] {
+    --bg-canvas: #191a21;
+    --bg-main: #21222c;
+    --bg-header: #1a1b22;
+    --bg-elevated: #282a36;
+    --bg-card: #282a36;
+    --bg-surface: #303342;
+    --bg-surface-hover: #383a48;
+    --border: #44475a;
+    --border-light: #6272a4;
+    --border-focus: #bd93f9;
+    --text-ink: #f8f8f2;
+    --text-main: #f8f8f2;
+    --text-body: #d2d2d8;
+    --text-muted: #6272a4;
+    --text-faint: #44475a;
+    --accent: #bd93f9;
+    --accent-deep: #a074e0;
+    --accent-bg: rgba(189, 147, 249, 0.15);
+    --table-bg: #1e1f29;
+    --shadow-whisper: 0px 1px 2px rgba(0, 0, 0, 0.45);
+    --shadow-floating: 0px 4px 20px rgba(0, 0, 0, 0.65);
+    --shadow: rgba(0, 0, 0, 0.6);
+    --mesh-gradient: linear-gradient(135deg, #8be9fd 0%, #bd93f9 50%, #ff79c6 100%);
+    --brand-dot: #50fa7b;
+}
+
+[data-theme="gruvbox"] {
+    --bg-canvas: #141617;
+    --bg-main: #1d2021;
+    --bg-header: #17191a;
+    --bg-elevated: #282828;
+    --bg-card: #282828;
+    --bg-surface: #32302f;
+    --bg-surface-hover: #3c3836;
+    --border: #3c3836;
+    --border-light: #504945;
+    --border-focus: #fabd2f;
+    --text-ink: #fbf1c7;
+    --text-main: #ebdbb2;
+    --text-body: #d5c4a1;
+    --text-muted: #928374;
+    --text-faint: #665c54;
+    --accent: #fabd2f;
+    --accent-deep: #d79921;
+    --accent-bg: rgba(250, 189, 47, 0.15);
+    --table-bg: #222020;
+    --shadow-whisper: 0px 1px 2px rgba(0, 0, 0, 0.45);
+    --shadow-floating: 0px 4px 20px rgba(0, 0, 0, 0.65);
+    --shadow: rgba(0, 0, 0, 0.55);
+    --mesh-gradient: linear-gradient(135deg, #83a598 0%, #d3869b 50%, #fb4934 100%);
+    --brand-dot: #b8bb26;
+}
+
+/* ==========================================================================
+   Base & Reset
+   ========================================================================== */
 
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 body {
-    background-color: var(--bg-main);
+    background-color: var(--bg-canvas);
     color: var(--text-main);
     font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Tahoma, sans-serif;
     font-size: var(--base-font-size, 14.5px);
@@ -101,55 +180,78 @@ body {
     overflow: hidden;
     user-select: text;
     -webkit-user-select: text;
-    transition: background-color 0.2s ease, color 0.2s ease;
+    transition: background-color 0.15s ease, color 0.15s ease;
 }
 
-/* ==========================================
-   Header & Toolbar
-   ========================================== */
+/* ==========================================================================
+   Header & Toolbar (Vercel In-App Chrome)
+   ========================================================================== */
+
 .app-header {
     background-color: var(--bg-header);
     border-bottom: 1px solid var(--border);
-    padding: 6px 14px;
+    padding: 7px 14px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 12.5px;
+    font-size: 13px;
     flex-wrap: wrap;
     gap: 8px;
+    box-shadow: var(--shadow-whisper);
 }
 
 .header-right {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
 }
 
 .header-badge {
     display: flex;
     align-items: center;
-    gap: 7px;
-    font-weight: 550;
-    color: var(--text-main);
+    gap: 8px;
+    font-weight: 600;
+    color: var(--text-ink);
+    letter-spacing: -0.2px;
+}
+
+.brand-title {
+    font-size: 13px;
 }
 
 .dot {
-    width: 8px;
-    height: 8px;
-    background-color: #22c55e;
-    border-radius: 50%;
-    box-shadow: 0 0 8px rgba(34, 197, 94, 0.6);
+    width: 7px;
+    height: 7px;
+    background-color: var(--brand-dot);
+    border-radius: 9999px;
+    box-shadow: 0 0 8px var(--brand-dot);
+    animation: vercel-pulse 2.4s infinite ease-in-out;
+}
+
+@keyframes vercel-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(0.9); }
+}
+
+.shortcut-tip {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--text-muted);
 }
 
 .shortcut-tip kbd,
 .btn kbd {
-    background-color: var(--bg-card);
+    background-color: var(--bg-surface);
     border: 1px solid var(--border);
-    color: var(--accent);
-    padding: 1px 5px;
-    border-radius: 4px;
-    font-family: Consolas, monospace;
+    color: var(--text-body);
+    font-family: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     font-size: 11px;
+    font-weight: 500;
+    padding: 1px 6px;
+    border-radius: 4px;
+    letter-spacing: 0;
+    line-height: 1.4;
 }
 
 .header-left {
@@ -158,25 +260,39 @@ body {
     gap: 6px;
 }
 
-/* Tool buttons */
+/* ==========================================================================
+   Buttons (Vercel In-App Controls: 6px rounded, 1px hairline border)
+   ========================================================================== */
+
+/* Universal Tool Button */
 .tool-btn {
-    background-color: var(--bg-card);
+    background-color: var(--bg-elevated);
     border: 1px solid var(--border);
     color: var(--text-main);
     font-family: inherit;
-    font-size: 11.5px;
-    padding: 3px 8px;
-    border-radius: 5px;
+    font-size: 12px;
+    font-weight: 500;
+    height: 28px;
+    padding: 0 9px;
+    border-radius: 6px; /* DESIGN-vercel.md: rounded.sm = 6px */
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: all 0.12s ease;
     display: inline-flex;
     align-items: center;
-    gap: 4px;
+    justify-content: center;
+    gap: 5px;
+    user-select: none;
+    box-shadow: var(--shadow-whisper);
 }
 
 .tool-btn:hover {
-    background-color: var(--border-light);
-    border-color: var(--accent);
+    background-color: var(--bg-surface-hover);
+    border-color: var(--border-light);
+    color: var(--text-ink);
+}
+
+.tool-btn:active {
+    transform: translateY(1px);
 }
 
 .tool-btn.active {
@@ -186,34 +302,91 @@ body {
     font-weight: 600;
 }
 
+.tool-btn:focus-visible,
+.btn:focus-visible,
+.theme-select:focus-visible {
+    outline: 2px solid var(--border-focus);
+    outline-offset: 1px;
+}
+
+/* Icon-only compact buttons */
+.icon-only-btn {
+    padding: 0 7px;
+    font-family: 'Geist Sans', -apple-system, sans-serif;
+    font-weight: 600;
+}
+
+.icon-only-btn .btn-label {
+    font-size: 12px;
+    margin-right: 2px;
+}
+
+/* Lucide and Vector SVG Icons inside buttons */
+.btn-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.btn-icon svg {
+    display: block;
+    width: 14px;
+    height: 14px;
+    stroke-width: 1.85px;
+    flex-shrink: 0;
+}
+
+.btn-icon .os-icon {
+    width: 13px;
+    height: 13px;
+}
+
+.btn-label {
+    line-height: 1;
+}
+
+/* Theme Dropdown */
 .theme-select {
-    background-color: var(--bg-card);
+    background-color: var(--bg-elevated);
     border: 1px solid var(--border);
     color: var(--text-main);
     font-family: inherit;
-    font-size: 11.5px;
-    padding: 3px 6px;
-    border-radius: 5px;
+    font-size: 12px;
+    font-weight: 500;
+    height: 28px;
+    padding: 0 8px;
+    border-radius: 6px; /* rounded.sm = 6px */
     cursor: pointer;
     outline: none;
-    transition: border-color 0.15s ease;
+    transition: all 0.12s ease;
+    box-shadow: var(--shadow-whisper);
 }
 
-.theme-select:focus {
-    border-color: var(--accent);
+.theme-select:hover {
+    border-color: var(--border-light);
+    background-color: var(--bg-surface-hover);
 }
 
-/* ==========================================
-   Content
-   ========================================== */
+.theme-select option {
+    background-color: var(--bg-elevated);
+    color: var(--text-main);
+}
+
+/* ==========================================================================
+   Content Area & Typography
+   ========================================================================== */
+
 .content-container {
     flex: 1;
     overflow-y: auto;
-    padding: 18px 20px;
+    padding: 20px 24px;
 }
 
 .content-body {
     word-break: break-word;
+    max-width: 1000px;
+    margin: 0 auto;
 }
 
 pre {
@@ -223,81 +396,122 @@ pre {
 }
 
 .text-block {
-    margin-bottom: 8px;
+    margin-bottom: 12px;
+    line-height: 1.8;
 }
 
-/* تیترها با وزن‌های بهینه فونت وریبل */
+/* Vercel Geist Typography Hierarchy (DESIGN-vercel.md) */
 h1, h2, h3, h4, h5, h6 {
-    font-family: inherit;
-    color: var(--text-main);
-    line-height: 1.45;
-    margin: 14px 0 8px 0;
+    font-family: 'Geist Sans', 'Vazirmatn', -apple-system, sans-serif;
+    color: var(--text-ink);
+    line-height: 1.35;
+    margin: 16px 0 10px 0;
 }
 
-h1 { font-size: 1.55rem; font-weight: 800; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
-h2 { font-size: 1.35rem; font-weight: 750; }
-h3 { font-size: 1.18rem; font-weight: 700; }
-h4 { font-size: 1.05rem; font-weight: 650; }
-h5 { font-size: 0.95rem; font-weight: 600; }
-h6 { font-size: 0.90rem; font-weight: 600; color: var(--text-muted); }
+h1 {
+    font-size: 1.65rem;
+    font-weight: 600;
+    letter-spacing: -0.8px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 8px;
+}
+
+h2 {
+    font-size: 1.38rem;
+    font-weight: 600;
+    letter-spacing: -0.6px;
+}
+
+h3 {
+    font-size: 1.18rem;
+    font-weight: 600;
+    letter-spacing: -0.4px;
+}
+
+h4 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    letter-spacing: -0.2px;
+}
+
+h5 {
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+h6 {
+    font-size: 0.90rem;
+    font-weight: 600;
+    color: var(--text-muted);
+}
 
 strong, b {
-    font-weight: 700;
-    color: var(--text-main);
+    font-weight: 600;
+    color: var(--text-ink);
 }
 
 blockquote {
     border-right: 3px solid var(--accent);
-    padding: 6px 14px;
-    margin: 10px 0;
-    background-color: var(--bg-card);
-    border-radius: 4px 0 0 4px;
-    color: var(--text-muted);
+    padding: 8px 16px;
+    margin: 14px 0;
+    background-color: var(--bg-surface);
+    border-radius: 6px 0 0 6px;
+    color: var(--text-body);
+    font-style: normal;
 }
 
-/* کدهای درون‌خطی مارک‌داون */
+hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 16px 0;
+}
+
+/* Inline Code Badges (Vercel Geist Mono Spec) */
 code, .inline-code {
-    font-family: 'Consolas', 'Courier New', monospace;
-    background-color: var(--bg-card);
-    color: var(--accent);
-    padding: 2px 7px;
-    border-radius: 5px;
-    font-size: 13px;
+    font-family: 'Geist Mono', Consolas, ui-monospace, SFMono-Regular, monospace;
+    background-color: var(--bg-surface);
+    color: var(--text-ink);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12.5px;
     border: 1px solid var(--border);
     unicode-bidi: isolate;
     direction: ltr;
     display: inline;
     box-decoration-break: clone;
     -webkit-box-decoration-break: clone;
+    letter-spacing: 0;
 }
 
-/* لینک‌های درون متنی */
+/* Text Links */
 .text-link {
     color: var(--accent);
     text-decoration: underline;
     text-underline-offset: 3px;
     direction: ltr;
     unicode-bidi: isolate;
+    transition: opacity 0.12s ease;
 }
 
 .text-link:hover {
-    opacity: 0.8;
+    color: var(--accent-deep);
 }
 
-/* بلوک‌های کد چندخطی */
+/* Multiline Code Block (DESIGN-vercel.md: rounded.md = 12px) */
 .code-block {
-    font-family: 'Consolas', 'Courier New', monospace;
+    font-family: 'Geist Mono', Consolas, ui-monospace, SFMono-Regular, monospace;
     white-space: pre;
     direction: ltr;
     text-align: left;
     background-color: var(--table-bg);
     border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 12px;
-    margin: 10px 0;
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin: 14px 0;
     font-size: 13px;
-    line-height: 1.45;
+    line-height: 1.5;
     overflow-x: auto;
+    box-shadow: var(--shadow-whisper);
 }
 
 .code-block code {
@@ -308,30 +522,31 @@ code, .inline-code {
     font-size: inherit;
 }
 
-/* جدول‌ها */
+/* Table Block */
 .table-block {
-    font-family: 'Consolas', 'Courier New', monospace;
+    font-family: 'Geist Mono', Consolas, ui-monospace, monospace;
     white-space: pre;
     direction: ltr;
     text-align: left;
     background-color: var(--table-bg);
     border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 12px;
-    margin: 10px 0;
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin: 14px 0;
     font-size: 13px;
-    line-height: 1.45;
+    line-height: 1.5;
     overflow-x: auto;
+    box-shadow: var(--shadow-whisper);
 }
 
-/* استایل محتوای HTML */
+/* HTML Rendered Content */
 .html-content ul, .html-content ol {
-    margin: 8px 0;
+    margin: 10px 0;
     padding-right: 24px;
 }
 
 .html-content li {
-    margin: 4px 0;
+    margin: 5px 0;
 }
 
 .html-content li::marker {
@@ -340,47 +555,58 @@ code, .inline-code {
 
 .html-content table {
     border-collapse: collapse;
-    margin: 10px 0;
+    margin: 12px 0;
     max-width: 100%;
+    border-radius: 6px;
+    overflow: hidden;
 }
 
 .html-content th, .html-content td {
     border: 1px solid var(--border);
-    padding: 6px 12px;
+    padding: 8px 14px;
     text-align: right;
 }
 
 .html-content th {
-    background-color: var(--bg-card);
+    background-color: var(--bg-surface);
+    color: var(--text-ink);
+    font-weight: 600;
 }
 
 .empty-state {
     text-align: center;
     color: var(--text-muted);
-    padding: 40px 20px;
+    padding: 60px 20px;
     font-size: 14px;
 }
 
-/* ==========================================
+/* ==========================================================================
    Footer
-   ========================================== */
+   ========================================================================== */
+
 .app-footer {
     background-color: var(--bg-header);
     border-top: 1px solid var(--border);
-    padding: 7px 14px;
+    padding: 8px 16px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 12px;
+    font-size: 12.5px;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 10px;
+    box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.02);
 }
 
 .footer-info {
     color: var(--text-muted);
     display: flex;
-    gap: 10px;
+    gap: 8px;
     align-items: center;
+    font-size: 12px;
+}
+
+.footer-info .separator {
+    color: var(--text-faint);
 }
 
 .footer-actions {
@@ -390,56 +616,87 @@ code, .inline-code {
     flex-wrap: wrap;
 }
 
+/* Footer Buttons */
 .btn {
     font-family: inherit;
-    font-size: 12px;
-    padding: 4px 12px;
-    border-radius: 5px;
+    font-size: 12.5px;
+    font-weight: 500;
+    height: 30px;
+    padding: 0 12px;
+    border-radius: 6px; /* DESIGN-vercel.md: rounded.sm = 6px */
     border: 1px solid transparent;
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: all 0.12s ease;
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    justify-content: center;
+    gap: 6px;
+    user-select: none;
+    box-shadow: var(--shadow-whisper);
 }
 
+.btn:active {
+    transform: translateY(1px);
+}
+
+/* Primary Button (Vercel button-primary-sm: high contrast) */
 .btn-primary {
-    background-color: var(--bg-card);
-    color: var(--text-main);
-    border-color: var(--border-light);
+    background-color: var(--text-ink);
+    color: var(--bg-canvas);
+    border-color: var(--text-ink);
+    font-weight: 600;
 }
 
 .btn-primary:hover {
-    background-color: var(--border-light);
-    border-color: var(--accent);
+    opacity: 0.92;
 }
 
+.btn-primary kbd {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: inherit;
+    padding: 0 4px;
+    border-radius: 3px;
+    font-size: 10.5px;
+}
+
+/* Accent Action (Vercel Blue #0070f3) */
 .btn-accent {
     background-color: var(--accent);
-    color: #18181b;
+    color: #ffffff;
     border-color: var(--accent);
     font-weight: 600;
 }
 
 .btn-accent:hover {
-    filter: brightness(1.1);
+    background-color: var(--accent-deep);
+    border-color: var(--accent-deep);
 }
 
+/* Secondary Button */
 .btn-secondary {
-    background-color: transparent;
-    color: var(--text-muted);
+    background-color: var(--bg-elevated);
+    color: var(--text-main);
     border-color: var(--border);
 }
 
 .btn-secondary:hover {
-    background-color: var(--bg-card);
-    color: var(--text-main);
+    background-color: var(--bg-surface-hover);
+    border-color: var(--border-light);
+    color: var(--text-ink);
 }
 
+/* Toggle Buttons (Virastar, Digits) */
 .btn-toggle {
-    background-color: transparent;
+    background-color: var(--bg-elevated);
     border-color: var(--border);
-    color: var(--text-muted);
+    color: var(--text-body);
+}
+
+.btn-toggle:hover {
+    background-color: var(--bg-surface-hover);
+    border-color: var(--border-light);
+    color: var(--text-ink);
 }
 
 .btn-toggle.active {
@@ -449,21 +706,23 @@ code, .inline-code {
     font-weight: 600;
 }
 
-/* ==========================================
-   Card Exporter Modal
-   ========================================== */
+/* ==========================================================================
+   Card Exporter Modal (DESIGN-vercel.md: Level-2 Floating Elevation)
+   ========================================================================== */
+
 .modal-backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.72);
-    backdrop-filter: blur(5px);
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 999;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.2s ease;
+    transition: opacity 0.18s cubic-bezier(0.16, 1, 0.3, 1);
     padding: 20px;
 }
 
@@ -474,25 +733,29 @@ code, .inline-code {
 
 .modal-dialog {
     background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
+    border: 1px solid var(--border-light);
+    border-radius: 12px; /* rounded.md = 12px */
     width: 100%;
-    max-width: 820px;
-    max-height: 90vh;
+    max-width: 840px;
+    max-height: 92vh;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 20px 40px var(--shadow);
+    box-shadow: var(--shadow-floating);
     overflow: hidden;
+    transform: scale(0.98);
+    transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal-backdrop.open .modal-dialog {
+    transform: scale(1);
 }
 
 .modal-header {
-    padding: 10px 16px;
+    padding: 12px 18px;
     border-bottom: 1px solid var(--border);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-weight: 600;
-    font-size: 13.5px;
     background-color: var(--bg-header);
     gap: 12px;
 }
@@ -500,49 +763,66 @@ code, .inline-code {
 .modal-title-group {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 16px;
+}
+
+.modal-title {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text-ink);
+    letter-spacing: -0.2px;
 }
 
 .os-style-switcher {
     display: flex;
-    gap: 4px;
-    background-color: var(--bg-main);
-    padding: 2px 4px;
+    gap: 3px;
+    background-color: var(--bg-canvas);
+    padding: 2px 3px;
     border-radius: 6px;
     border: 1px solid var(--border);
 }
 
 .os-style-switcher .tool-btn {
-    padding: 2px 8px;
+    padding: 0 8px;
+    height: 24px;
     font-size: 11px;
     border-color: transparent;
     background: transparent;
+    box-shadow: none;
 }
 
 .os-style-switcher .tool-btn.active {
-    background-color: var(--bg-card);
-    border-color: var(--border-light);
-    color: var(--accent);
+    background-color: var(--bg-elevated);
+    border-color: var(--border);
+    color: var(--text-ink);
+    box-shadow: var(--shadow-whisper);
+}
+
+.close-btn {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border-radius: 6px;
 }
 
 .modal-body {
-    padding: 20px;
+    padding: 24px;
     overflow-y: auto;
     display: flex;
     justify-content: center;
     align-items: center;
-    background: rgba(0, 0, 0, 0.2);
+    background: rgba(0, 0, 0, 0.3);
 }
 
 .modal-body canvas {
     max-width: 100%;
     height: auto;
-    border-radius: 10px;
-    box-shadow: 0 8px 24px var(--shadow);
+    border-radius: 8px;
+    box-shadow: var(--shadow-floating);
 }
 
 .modal-footer {
-    padding: 10px 16px;
+    padding: 12px 18px;
     border-top: 1px solid var(--border);
     display: flex;
     justify-content: flex-end;
@@ -550,19 +830,22 @@ code, .inline-code {
     background-color: var(--bg-header);
 }
 
-/* Scrollbar */
+/* ==========================================================================
+   Scrollbars (Subtle Hairline Style)
+   ========================================================================== */
+
 ::-webkit-scrollbar {
-    width: 7px;
-    height: 7px;
+    width: 6px;
+    height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-    background: var(--bg-main);
+    background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
     background: var(--border);
-    border-radius: 4px;
+    border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {

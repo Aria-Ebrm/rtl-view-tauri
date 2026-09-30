@@ -37,12 +37,13 @@
             // یکسان‌سازی ی و ک عربی به فارسی
             .replace(/ي/g, 'ی')
             .replace(/ك/g, 'ک')
-            // تبدیل ة به ه
-            .replace(/([^\s])ة\b/g, '$1ه')
+            // تبدیل ة به ه در انتهای کلمات و مرزهای نگارشی
+            .replace(/([^\s])ة(?=[\s\.,!?;:«»\(\)\[\]\{\}؟،؛"'\-–—\u200C]|$)/g, '$1ه')
             // یکسان‌سازی همزه
             .replace(/ۀ/g, 'ه‌ی')
-            // حذف فاصله‌های اضافه دور نیم‌فاصله
-            .replace(/\s*\u200C\s*/g, ZWNJ);
+            // حذف فاصله‌های اضافه دور نیم‌فاصله و ادغام نیم‌فاصله‌های متوالی
+            .replace(/(?:\s*\u200C\s*)+/g, ZWNJ)
+            .replace(/\u200C+/g, ZWNJ);
     }
 
     function fixPunctuation(text) {
@@ -79,25 +80,39 @@
     function fixHalfSpaces(text) {
         let res = text;
 
-        const bound = '(?=[\\s\\.,!?;:«»\\(\\)\\[\\]]|$)';
+        const bound = '(?=[\\s\\.,!?;:«»\\(\\)\\[\\]\\{\\}؟،؛"\'\\-–—]|$)';
+        const wordCharExclusion = '[^\\s\\d\\.,!?;:«»\\(\\)\\[\\]\\{\\}؟،؛"\'\\-–—\u200C]';
+        const leadBound = '(^|[\\s\\.,!?;:«»\\(\\)\\[\\]\\{\\}؟،؛"\'\\-–—\u200C])';
 
         // ۱. پیشوندهای «می» و «نمی»
-        res = res.replace(/(^|[\s\(\[\{«])(می|نمی)\s+([^\s\d\.,!?;:«»\(\)\[\]]+)/g, `$1$2${ZWNJ}$3`);
+        res = res.replace(new RegExp(`(^|[\\s\\(\\[\\{«"'\u200C])(می|نمی)\\s+(${wordCharExclusion}+)`, 'g'), `$1$2${ZWNJ}$3`);
 
-        // ۲. پیشوند نفی «بی»
-        res = res.replace(/(^|[\s\(\[\{«])(بی)\s+([^\s\d\.,!?;:«»\(\)\[\]]+)/g, `$1$2${ZWNJ}$3`);
+        // ۲. پیشوند نفی «بی» (به جز قبل از ضمایر مستقل و کلمه «هیچ»)
+        const independentPronouns = /^(من|تو|او|ما|شما|ایشان|آنها|آنان|اینها|هیچ)$/;
+        res = res.replace(new RegExp(`(^|[\\s\\(\\[\\{«"'\u200C])(بی)\\s+(${wordCharExclusion}+)`, 'g'), (match, prefix, bi, word) => {
+            if (independentPronouns.test(word)) {
+                return match;
+            }
+            return `${prefix}${bi}${ZWNJ}${word}`;
+        });
 
         // ۳. پسوندهای «ها»، «های»، «هایی»، «هایم»، «هایت»، «هایش»، «هایمان»، «هایتان»، «هایشان»
-        res = res.replace(new RegExp(`([^\\s\\d\\.,!?;:«»\\(\\)\\[\\]]+)\\s+(ها|های|هایی|هایم|هایت|هایش|هایمان|هایتان|هایشان)${bound}`, 'g'), `$1${ZWNJ}$2`);
+        res = res.replace(new RegExp(`${leadBound}(${wordCharExclusion}+)\\s+(ها|های|هایی|هایم|هایت|هایش|هایمان|هایتان|هایشان)${bound}`, 'g'), `$1$2${ZWNJ}$3`);
 
         // ۴. پسوندهای تفضیلی «تر»، «ترین»، «تری»
-        res = res.replace(new RegExp(`([^\\s\\d\\.,!?;:«»\\(\\)\\[\\]]+)\\s+(تر|ترین|تری)${bound}`, 'g'), `$1${ZWNJ}$2`);
+        res = res.replace(new RegExp(`${leadBound}(${wordCharExclusion}+)\\s+(تر|ترین|تری)${bound}`, 'g'), `$1$2${ZWNJ}$3`);
 
         // ۵. پسوندهای ضمیری و فعلی بعد از «ه» غیرملفوظ یا حروف صدادار
         res = res.replace(new RegExp(`([ابپتثجچحخدذرزژسشصضطظعغفقکگلمنوهی]ه)\\s+(ام|ات|اش|ای|ایم|اید|اند)${bound}`, 'g'), `$1${ZWNJ}$2`);
 
-        // ۶. شناسه‌های فعل مانند «گفته است»
-        res = res.replace(new RegExp(`([^\\s\\d\\.,!?;:«»\\(\\)\\[\\]]+ه)\\s+(است)${bound}`, 'g'), `$1${ZWNJ}$2`);
+        // ۶. شناسه‌های فعل مانند «گفته است» (به جز کلماتی که دارای «ه» ملفوظ ریشه‌ای هستند مانند راه، کوه، ماه، گناه، دانشگاه، اشتباه، شاه)
+        const pronouncedHehRegex = /(?:[ابپتثجچحخدذرزژسشصضطظعغفقکگلمنوهی]اه|کوه|گروه|شکوه|انبوه|ستوه|شبیه|توجیه|تشبیه|تنبیه|فقیه|^(?:ده|مه|گره|زره|وجه|فقه))$/;
+        res = res.replace(new RegExp(`${leadBound}(${wordCharExclusion}+ه)\\s+(است)${bound}`, 'g'), (match, prefix, word, verb) => {
+            if (pronouncedHehRegex.test(word)) {
+                return match;
+            }
+            return `${prefix}${word}${ZWNJ}${verb}`;
+        });
 
         return res;
     }
@@ -168,4 +183,8 @@
         cleanupSpaces
     };
 
-})(window);
+    if (typeof module !== 'undefined' && module.exports) {
+        module.exports = window.Virastar;
+    }
+
+})(typeof window !== 'undefined' ? window : (typeof globalThis !== 'undefined' ? globalThis : this));
