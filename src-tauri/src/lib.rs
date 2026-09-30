@@ -1,22 +1,21 @@
-mod clipboard;
-mod text_engine;
-
 use std::sync::Mutex;
 use tauri::{
     menu::{CheckMenuItem, Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-    AppHandle, Emitter, LogicalSize, Manager, WebviewWindow,
+    AppHandle, Emitter, Manager, PhysicalSize, WebviewWindow,
 };
 use tauri_plugin_autostart::ManagerExt;
 use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState};
+
+mod clipboard;
+mod text_engine;
 use text_engine::{process_clipboard_payload, ProcessedContent};
 
-// نگهداری آخرین محتوای پردازش‌شده برای ارسال به پنجره
 static CURRENT_CONTENT: Mutex<Option<ProcessedContent>> = Mutex::new(None);
 
 #[tauri::command]
 fn get_current_content() -> ProcessedContent {
-    let lock = CURRENT_CONTENT.lock().unwrap_or_else(|p| p.into_inner());
+    let lock = CURRENT_CONTENT.lock().unwrap();
     lock.clone().unwrap_or_else(|| ProcessedContent {
         raw_text: String::new(),
         html: r#"<div class="empty-state" style="text-align: center; padding: 24px 16px;">
@@ -57,42 +56,29 @@ fn toggle_autostart_cmd(app: AppHandle) -> Result<bool, String> {
     }
 }
 
-/// محاسبه اندازه پویای پنجره متناسب با طول متن و تعداد خطوط با استفاده از LogicalSize
-fn calculate_window_size(len: usize, line_count: usize) -> (f64, f64) {
-    let (base_w, base_h) = if len < 150 {
-        (540.0, 280.0)
+/// محاسبه اندازه پویای پنجره متناسب با طول متن
+fn calculate_window_size(len: usize) -> (u32, u32) {
+    if len < 150 {
+        (520, 260)
     } else if len < 600 {
-        (760.0, 460.0)
+        (740, 440)
     } else {
-        (940.0, 660.0)
-    };
-
-    // تطبیق ارتفاع برای متونی که تعداد خطوط زیادی دارند اما طول کاراکتر کم دارند
-    let line_height_estimate = (line_count as f64 * 26.0 + 100.0).min(760.0);
-    let final_h = base_h.max(line_height_estimate).min(800.0);
-
-    (base_w, final_h)
+        (920, 640)
+    }
 }
 
 /// تابع فراخوانی پاپ‌آپ هنگام فشرده شدن کلید میانبر
 fn trigger_popup(app: &AppHandle) {
-    // جلوگیری اتمیک از ورود دوباره در صورت اجرای فرایند کپچر
-    let _guard = match clipboard::try_acquire_capture() {
-        Some(g) => g,
-        None => return,
-    };
-
     if let Some(window) = app.get_webview_window("main") {
         let (raw, is_html) = clipboard::capture_selected_content();
         let processed = process_clipboard_payload(&raw, is_html);
 
-        let line_count = raw.lines().count().max(1);
-        let (w, h) = calculate_window_size(processed.visible_length, line_count);
-        let _ = window.set_size(LogicalSize::new(w, h));
+        let (w, h) = calculate_window_size(processed.visible_length);
+        let _ = window.set_size(PhysicalSize::new(w, h));
         let _ = window.center();
 
         {
-            let mut lock = CURRENT_CONTENT.lock().unwrap_or_else(|p| p.into_inner());
+            let mut lock = CURRENT_CONTENT.lock().unwrap();
             *lock = Some(processed.clone());
         }
 
@@ -121,15 +107,12 @@ pub fn run() {
         .setup(|app| {
             let handle = app.handle().clone();
 
-            // 1. ثبت کلید میانبر سراسری Ctrl+Alt+F به صورت غیر مسدودکننده (Non-blocking Thread)
+            // 1. ثبت کلید میانبر سراسری Ctrl+Alt+F
             let shortcut = Shortcut::new(Some(Modifiers::CONTROL | Modifiers::ALT), Code::KeyF);
             let shortcut_handle = handle.clone();
             let _ = app.global_shortcut().on_shortcut(shortcut, move |_app, _sc, event| {
                 if event.state() == ShortcutState::Pressed {
-                    let h = shortcut_handle.clone();
-                    std::thread::spawn(move || {
-                        trigger_popup(&h);
-                    });
+                    trigger_popup(&shortcut_handle);
                 }
             });
 
