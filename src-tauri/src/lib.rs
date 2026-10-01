@@ -87,6 +87,27 @@ fn repair_installation(app: AppHandle) -> Result<String, String> {
     Ok("تنظیمات و منابع سیستمی با موفقیت بازنشانی و بررسی شدند.".to_string())
 }
 
+#[tauri::command]
+fn update_global_shortcut(app: AppHandle, shortcut_str: String) -> Result<String, String> {
+    use std::str::FromStr;
+    let clean = shortcut_str.trim().replace(' ', "");
+    let shortcut = Shortcut::from_str(&clean)
+        .map_err(|e| format!("میانبر نامعتبر است: {e}"))?;
+
+    let _ = app.global_shortcut().unregister_all();
+
+    let handle = app.clone();
+    app.global_shortcut()
+        .on_shortcut(shortcut, move |_app, _sc, event| {
+            if event.state() == ShortcutState::Pressed {
+                trigger_popup(&handle);
+            }
+        })
+        .map_err(|e| format!("امکان ثبت میانبر در سیستم‌عامل وجود ندارد: {e}"))?;
+
+    Ok(clean)
+}
+
 /// محاسبه اندازه پویای پنجره متناسب با طول متن
 fn calculate_window_size(len: usize) -> (u32, u32) {
     if len < 150 {
@@ -200,7 +221,8 @@ pub fn run() {
             toggle_maximize_window,
             toggle_autostart_cmd,
             toggle_always_on_top,
-            repair_installation
+            repair_installation,
+            update_global_shortcut
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

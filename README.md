@@ -42,17 +42,17 @@
 ---
 
 ### `01 // DOWNLOAD MATRIX`
-#### دریافت مستقیم آخرین نسخه پایدار (v2.3.1)
+#### دریافت مستقیم آخرین نسخه پایدار (v2.3.2)
 
 تمامی باینری‌ها توسط خط لوله خودکار GitHub Actions با فلگ‌های بهینه‌سازی `opt-level = 3` و `lto = true` کامپایل شده‌اند:
 
 | سیستم‌عامل | معماری | فرمت پکیج | حجم تقریبی | لینک دانلود مستقیم |
 | :--- | :--- | :--- | :--- | :--- |
-| **Windows** | x64 (64-bit) | `.exe` (NSIS Setup خودکار سبک) | ~۱.۸ MB | [**دانلود نصاب خودکار Setup.exe**](https://github.com/Aria-Ebrm/rtl-view-tauri/releases/download/v2.3.1/RTL.View_2.3.1_x64-setup.exe) |
-| **Windows** | x64 (64-bit) | `.msi` (Windows Installer سازمانی) | ~۲.۶ MB | [دانلود پکیج سازمانی MSI](https://github.com/Aria-Ebrm/rtl-view-tauri/releases/download/v2.3.1/RTL.View_2.3.1_x64_en-US.msi) |
-| **macOS** | Universal (Intel & Apple Silicon M1-M4) | `.dmg` | ~۴.۹ MB | [دانلود دیسک ایمیج DMG](https://github.com/Aria-Ebrm/rtl-view-tauri/releases/download/v2.3.1/RTL.View_2.3.1_universal.dmg) |
-| **Linux** | x86_64 | `.deb` (Debian / Ubuntu / Mint) | ~۳.۱ MB | [دانلود پکیج دبیان DEB](https://github.com/Aria-Ebrm/rtl-view-tauri/releases/download/v2.3.1/RTL.View_2.3.1_amd64.deb) |
-| **Linux** | x86_64 | `.AppImage` (پرتابل مستقل) | ~۷۸ MB | [دانلود نسخه مستقل AppImage](https://github.com/Aria-Ebrm/rtl-view-tauri/releases/download/v2.3.1/RTL.View_2.3.1_amd64.AppImage) |
+| **Windows** | x64 (64-bit) | `.exe` (NSIS Setup خودکار سبک) | ~۱.۸ MB | [**دانلود نصاب خودکار Setup.exe**](https://github.com/Aria-Ebrm/rtl-view-tauri/releases/download/v2.3.2/RTL.View_2.3.2_x64-setup.exe) |
+| **Windows** | x64 (64-bit) | `.msi` (Windows Installer سازمانی) | ~۲.۶ MB | [دانلود پکیج سازمانی MSI](https://github.com/Aria-Ebrm/rtl-view-tauri/releases/download/v2.3.2/RTL.View_2.3.2_x64_en-US.msi) |
+| **macOS** | Universal (Intel & Apple Silicon M1-M4) | `.dmg` | ~۴.۹ MB | [دانلود دیسک ایمیج DMG](https://github.com/Aria-Ebrm/rtl-view-tauri/releases/download/v2.3.2/RTL.View_2.3.2_universal.dmg) |
+| **Linux** | x86_64 | `.deb` (Debian / Ubuntu / Mint) | ~۳.۱ MB | [دانلود پکیج دبیان DEB](https://github.com/Aria-Ebrm/rtl-view-tauri/releases/download/v2.3.2/RTL.View_2.3.2_amd64.deb) |
+| **Linux** | x86_64 | `.AppImage` (پرتابل مستقل) | ~۷۸ MB | [دانلود نسخه مستقل AppImage](https://github.com/Aria-Ebrm/rtl-view-tauri/releases/download/v2.3.2/RTL.View_2.3.2_amd64.AppImage) |
 
 > برای مشاهده چک‌سام‌های امنیتی SHA-256 و سایر فرمت‌ها، به [صفحه انتشارهای گیت‌هاب (Releases)](https://github.com/Aria-Ebrm/rtl-view-tauri/releases/latest) مراجعه کنید.
 

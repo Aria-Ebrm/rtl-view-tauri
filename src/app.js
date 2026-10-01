@@ -43,7 +43,6 @@
     const btnTrayRepair = doc ? doc.getElementById('btn-tray-repair') : null;
     const menuBtnRepair = doc ? doc.getElementById('menu-btn-repair') : null;
     const menuBtnQuit = doc ? doc.getElementById('menu-btn-quit') : null;
-    const menuBtnCheckUpdates = doc ? doc.getElementById('menu-btn-check-updates') : null;
 
     // المان‌های تغییر کلید میانبر
     const shortcutModal = doc ? doc.getElementById('shortcut-modal') : null;
@@ -880,19 +879,32 @@
         }
     }
 
+    // توابع کمکی یکپارچه باز و بسته کردن مدال‌ها
+    function showModal(modalEl) {
+        if (!modalEl) return;
+        modalEl.classList.remove('hidden');
+        modalEl.classList.add('open');
+    }
+
+    function hideModal(modalEl) {
+        if (!modalEl) return;
+        modalEl.classList.remove('open');
+        modalEl.classList.add('hidden');
+    }
+
     // باز و بسته کردن مدال تنظیمات ترِی
     function openTraySettingsModal() {
         toggleHamburgerMenu(false);
         isTraySettingsOpen = true;
         if (traySettingsModal) {
-            traySettingsModal.classList.remove('hidden');
+            showModal(traySettingsModal);
             if (trayToggleAlwaysTop) trayToggleAlwaysTop.checked = isPinned;
         }
     }
 
     function closeTraySettingsModal() {
         isTraySettingsOpen = false;
-        if (traySettingsModal) traySettingsModal.classList.add('hidden');
+        hideModal(traySettingsModal);
     }
 
     // باز و بسته کردن مدال تغییر میانبر
@@ -900,12 +912,12 @@
         toggleHamburgerMenu(false);
         isShortcutModalOpen = true;
         if (inputCustomShortcut) inputCustomShortcut.value = currentShortcut;
-        if (shortcutModal) shortcutModal.classList.remove('hidden');
+        showModal(shortcutModal);
     }
 
     function closeShortcutModal() {
         isShortcutModalOpen = false;
-        if (shortcutModal) shortcutModal.classList.add('hidden');
+        hideModal(shortcutModal);
     }
 
     // عملیات سلامت‌سنجی و بازیابی منابع (Repair Routine)
@@ -964,20 +976,22 @@
         }
     }
 
-    // باز کردن مدال کارت تصویری (استفاده از متن کش‌شده برای جلوگیری از Freeze در متن‌های حجیم)
+    // باز کردن مدال کارت تصویری
     function openCardModal() {
+        toggleHamburgerMenu(false);
         const text = currentCleanText || (currentRawData && (currentRawData.raw_text || currentRawData.plain_text)) || (contentBody ? contentBody.innerText : '') || '';
-        if (!text.trim() || text.includes('برنامه RTL View فعال است')) {
-            alert('متنی برای ساخت کارت تصویری موجود نیست.');
-            return;
+        if (!text.trim()) {
+            if (contentBody) {
+                contentBody.innerHTML = '<p>متن نمونه برای تولید کارت تصویری در استودیوی RTL View</p>';
+            }
         }
         updateStyleSwitcherUI();
-        if (cardModal) cardModal.classList.add('open');
+        showModal(cardModal);
         renderActiveCard();
     }
 
     function closeCardModal() {
-        if (cardModal) cardModal.classList.remove('open');
+        hideModal(cardModal);
     }
 
     // ==========================================
@@ -1082,27 +1096,6 @@
         });
     }
 
-    if (menuBtnCheckUpdates) {
-        menuBtnCheckUpdates.addEventListener('click', async () => {
-            try {
-                showButtonFeedback(menuBtnCheckUpdates, 'در حال بررسی...');
-                const res = await fetch('https://api.github.com/repos/Aria-Ebrm/rtl-view-tauri/releases/latest');
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data.tag_name && data.tag_name !== 'v2.3.1') {
-                        alert(`نسخه جدیدتر ${data.tag_name} در دسترس است!\nبرای دانلود به صفحه گیت‌هاب مراجعه کنید:\n${data.html_url}`);
-                    } else {
-                        alert('شما در حال استفاده از آخرین نسخه رسمی و پایدار (v2.3.1) هستید ✔');
-                    }
-                } else {
-                    alert('شما در حال حاضر از نسخه رسمی ۲.۳.۱ استفاده می‌کنید.');
-                }
-            } catch (e) {
-                alert('برنامه در حالت آفلاین است یا ارتباط با سرور گیت‌هاب برقرار نشد.');
-            }
-        });
-    }
-
     // مدال تنظیمات ترِی
     if (btnCloseTrayModal) btnCloseTrayModal.addEventListener('click', closeTraySettingsModal);
     if (btnTrayModalClose) btnTrayModalClose.addEventListener('click', closeTraySettingsModal);
@@ -1146,13 +1139,24 @@
     }
 
     if (btnSaveShortcut) {
-        btnSaveShortcut.addEventListener('click', () => {
+        btnSaveShortcut.addEventListener('click', async () => {
             if (inputCustomShortcut && inputCustomShortcut.value.trim()) {
-                currentShortcut = inputCustomShortcut.value.trim();
-                storage.setItem('rtl_shortcut', currentShortcut);
-                updateShortcutDisplays();
-                closeShortcutModal();
-                showButtonFeedback(btnSaveShortcut, 'ذخیره شد!');
+                const newSc = inputCustomShortcut.value.trim();
+                try {
+                    if (typeof window !== 'undefined' && window.__TAURI__ && window.__TAURI__.core) {
+                        await window.__TAURI__.core.invoke('update_global_shortcut', { shortcutStr: newSc });
+                    }
+                    currentShortcut = newSc;
+                    storage.setItem('rtl_shortcut', currentShortcut);
+                    updateShortcutDisplays();
+                    closeShortcutModal();
+                    showButtonFeedback(btnSaveShortcut, 'ذخیره شد!');
+                } catch (err) {
+                    console.error('Failed to update shortcut:', err);
+                    if (typeof alert !== 'undefined') {
+                        alert('امکان ثبت میانبر در ویندوز وجود ندارد:\n' + err + '\nلطفاً از ترکیب‌های استاندارد مانند Ctrl+Alt+F، Ctrl+Shift+R یا Alt+F استفاده کنید.');
+                    }
+                }
             }
         });
     }
@@ -1370,6 +1374,9 @@
 
             try {
                 if (window.__TAURI__ && window.__TAURI__.core) {
+                    if (currentShortcut && currentShortcut !== 'Ctrl+Alt+F' && currentShortcut !== 'Ctrl + Alt + F') {
+                        window.__TAURI__.core.invoke('update_global_shortcut', { shortcutStr: currentShortcut }).catch(e => console.warn('Custom shortcut restore failed:', e));
+                    }
                     const initial = await window.__TAURI__.core.invoke('get_current_content');
                     updateView(initial);
                 }
