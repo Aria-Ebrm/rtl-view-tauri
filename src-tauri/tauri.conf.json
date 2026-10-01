@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "RTL View",
-  "version": "2.3.2",
+  "version": "2.3.3",
   "identifier": "com.rtlview.desktop",
   "build": {
     "frontendDist": "../src"
@@ -45,8 +45,7 @@
         "languages": ["English"],
         "displayLanguageSelector": false,
         "headerImage": "assets/installer-header.bmp",
-        "sidebarImage": "assets/installer-sidebar.bmp",
-        "installerHooks": "hooks.nsh"
+        "sidebarImage": "assets/installer-sidebar.bmp"
       }
     }
   }

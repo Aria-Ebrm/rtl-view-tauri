@@ -1,5 +1,5 @@
 /**
- * Card Exporter for RTL View - Version 2.3.2
+ * Card Exporter for RTL View - Version 2.3.3
  * Generates beautiful, high-resolution (Retina 2x) social media cards
  * formatted with Vazirmatn font, theme palettes, inline code badges,
  * and adaptive OS window decorations (Windows 11 or macOS).
