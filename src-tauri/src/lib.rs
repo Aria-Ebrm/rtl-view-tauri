@@ -227,26 +227,11 @@ pub fn run() {
                                 let tray_w = 260;
                                 let tray_h = 230;
 
-                                #[cfg(target_os = "windows")]
-                                {
-                                    use windows_sys::Win32::UI::WindowsAndMessaging::{GetCursorPos, POINT};
-                                    let mut pt = POINT { x: 0, y: 0 };
-                                    unsafe { GetCursorPos(&mut pt); }
-                                    let mut x = pt.x - (tray_w / 2);
-                                    let mut y = pt.y - tray_h - 10;
-                                    if x < 10 { x = 10; }
-                                    if y < 10 { y = 10; }
-                                    let _ = tray_win.set_position(tauri::Position::Physical(tauri::PhysicalPosition::new(x, y)));
-                                }
-
-                                #[cfg(not(target_os = "windows"))]
-                                {
-                                    let mut x = (position.x as i32) - (tray_w / 2);
-                                    let mut y = (position.y as i32) - tray_h - 10;
-                                    if x < 10 { x = 10; }
-                                    if y < 10 { y = 10; }
-                                    let _ = tray_win.set_position(tauri::Position::Physical(tauri::PhysicalPosition::new(x, y)));
-                                }
+                                let mut x = (position.x as i32) - (tray_w / 2);
+                                let mut y = (position.y as i32) - tray_h - 12;
+                                if x < 10 { x = 10; }
+                                if y < 10 { y = 10; }
+                                let _ = tray_win.set_position(tauri::Position::Physical(tauri::PhysicalPosition::new(x, y)));
 
                                 let _ = tray_win.show();
                                 let _ = tray_win.set_focus();
