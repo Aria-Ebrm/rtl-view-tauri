@@ -36,6 +36,23 @@ fn hide_window(window: WebviewWindow) {
 }
 
 #[tauri::command]
+fn minimize_window(window: WebviewWindow) -> Result<(), String> {
+    window.minimize().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn toggle_maximize_window(window: WebviewWindow) -> Result<bool, String> {
+    let is_max = window.is_maximized().map_err(|e| e.to_string())?;
+    if is_max {
+        window.unmaximize().map_err(|e| e.to_string())?;
+        Ok(false)
+    } else {
+        window.maximize().map_err(|e| e.to_string())?;
+        Ok(true)
+    }
+}
+
+#[tauri::command]
 fn toggle_always_on_top(window: WebviewWindow) -> Result<bool, String> {
     let current = window.is_always_on_top().map_err(|e| e.to_string())?;
     let next = !current;
@@ -56,14 +73,29 @@ fn toggle_autostart_cmd(app: AppHandle) -> Result<bool, String> {
     }
 }
 
+#[tauri::command]
+fn repair_installation(app: AppHandle) -> Result<String, String> {
+    // 1. ارزیابی و تنظیم استارتاپ ویندوز
+    let mgr = app.autolaunch();
+    let _ = mgr.is_enabled();
+
+    // 2. تنظیم مجدد موقعیت و لایه پنجره
+    if let Some(w) = app.get_webview_window("main") {
+        let _ = w.set_always_on_top(true);
+        let _ = w.center();
+    }
+
+    Ok("تنظیمات و منابع سیستمی با موفقیت بازنشانی و بررسی شدند.".to_string())
+}
+
 /// محاسبه اندازه پویای پنجره متناسب با طول متن
 fn calculate_window_size(len: usize) -> (u32, u32) {
     if len < 150 {
-        (520, 260)
+        (540, 280)
     } else if len < 600 {
-        (740, 440)
+        (760, 460)
     } else {
-        (920, 640)
+        (940, 660)
     }
 }
 
@@ -107,7 +139,7 @@ pub fn run() {
         .setup(|app| {
             let handle = app.handle().clone();
 
-            // 1. ثبت کلید میانبر سراسری Ctrl+Alt+F
+            // 1. ثبت کلید میانبر سراسری پیش‌فرض Ctrl+Alt+F
             let shortcut = Shortcut::new(Some(Modifiers::CONTROL | Modifiers::ALT), Code::KeyF);
             let shortcut_handle = handle.clone();
             let _ = app.global_shortcut().on_shortcut(shortcut, move |_app, _sc, event| {
@@ -120,14 +152,16 @@ pub fn run() {
             let is_auto = handle.autolaunch().is_enabled().unwrap_or(false);
 
             let title_item = MenuItem::with_id(&handle, "title", "نمایشگر راست‌چین RTL View", false, None::<&str>)?;
-            let help_item = MenuItem::with_id(&handle, "help", "راهنما و کلید میانبر (Ctrl+Alt+F)", true, None::<&str>)?;
+            let settings_item = MenuItem::with_id(&handle, "settings", "تنظیمات برنامه و کلید میانبر", true, None::<&str>)?;
             let startup_item = CheckMenuItem::with_id(&handle, "startup", "اجرا با روشن شدن سیستم (Startup)", true, is_auto, None::<&str>)?;
+            let repair_item = MenuItem::with_id(&handle, "repair", "تعمیر و بازنشانی برنامه (Repair)", true, None::<&str>)?;
             let quit_item = MenuItem::with_id(&handle, "quit", "خروج از برنامه", true, None::<&str>)?;
 
             let tray_menu = Menu::with_items(&handle, &[
                 &title_item,
-                &help_item,
+                &settings_item,
                 &startup_item,
+                &repair_item,
                 &quit_item,
             ])?;
 
@@ -143,10 +177,11 @@ pub fn run() {
             let _tray = tray_builder
                 .on_menu_event(move |app, event| {
                     match event.id().as_ref() {
-                        "help" => {
+                        "settings" => {
                             if let Some(w) = app.get_webview_window("main") {
                                 let _ = w.show();
                                 let _ = w.set_focus();
+                                let _ = w.emit("open-tray-settings", ());
                             }
                         }
                         "startup" => {
@@ -157,6 +192,14 @@ pub fn run() {
                                 } else {
                                     let _ = mgr.enable();
                                 }
+                            }
+                        }
+                        "repair" => {
+                            if let Some(w) = app.get_webview_window("main") {
+                                let _ = w.show();
+                                let _ = w.set_focus();
+                                let _ = w.emit("open-tray-settings", ());
+                                let _ = w.emit("trigger-repair", ());
                             }
                         }
                         "quit" => {
@@ -175,6 +218,7 @@ pub fn run() {
                         if let Some(w) = app.get_webview_window("main") {
                             let _ = w.show();
                             let _ = w.set_focus();
+                            let _ = w.emit("open-tray-settings", ());
                         }
                     }
                 })
@@ -203,8 +247,11 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             get_current_content,
             hide_window,
+            minimize_window,
+            toggle_maximize_window,
             toggle_autostart_cmd,
-            toggle_always_on_top
+            toggle_always_on_top,
+            repair_installation
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -309,6 +309,8 @@ function loadApp(overrides = {}) {
 
     const mockDoc = {
         getElementById: (id) => elements[id] || createMockElement(id),
+        querySelector: (sel) => null,
+        querySelectorAll: (sel) => [],
         documentElement: createMockElement('html', 'html'),
         body: createMockElement('body', 'body'),
         createElement: (tag) => {

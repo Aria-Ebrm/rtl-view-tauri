@@ -16,8 +16,44 @@
     const btnPin = doc ? doc.getElementById('btn-pin') : null;
     const btnFontDec = doc ? doc.getElementById('btn-font-dec') : null;
     const btnFontInc = doc ? doc.getElementById('btn-font-inc') : null;
-    const themeSelect = doc ? doc.getElementById('theme-select') : null;
     const btnExportCard = doc ? doc.getElementById('btn-export-card') : null;
+    const themeSelect = doc ? doc.getElementById('theme-select') : null;
+
+    // متغیرهای وضعیت باز بودن منوها و مدال‌ها
+    let isHamburgerOpen = false;
+    let isTraySettingsOpen = false;
+    let isShortcutModalOpen = false;
+
+    // المان‌های نوار عنوان سفارشی و کنترل پنجره
+    const btnWinMinimize = doc ? doc.getElementById('btn-win-minimize') : null;
+    const btnWinMaximize = doc ? doc.getElementById('btn-win-maximize') : null;
+    const btnWinClose = doc ? doc.getElementById('btn-win-close') : null;
+    const btnHamburger = doc ? doc.getElementById('btn-hamburger') : null;
+    const hamburgerDropdown = doc ? doc.getElementById('hamburger-dropdown') : null;
+
+    // المان‌های پنل تنظیمات نوار وظیفه (Tray Settings Modal)
+    const traySettingsModal = doc ? doc.getElementById('tray-settings-modal') : null;
+    const btnCloseTrayModal = doc ? doc.getElementById('btn-close-tray-modal') : null;
+    const btnTrayModalClose = doc ? doc.getElementById('btn-tray-modal-close') : null;
+    const btnTrayModalQuit = doc ? doc.getElementById('btn-tray-modal-quit') : null;
+    const menuBtnOpenTraySettings = doc ? doc.getElementById('menu-btn-open-tray-settings') : null;
+    const trayToggleAutostart = doc ? doc.getElementById('tray-toggle-autostart') : null;
+    const trayToggleAlwaysTop = doc ? doc.getElementById('tray-toggle-always-top') : null;
+    const btnTrayRepair = doc ? doc.getElementById('btn-tray-repair') : null;
+    const menuBtnRepair = doc ? doc.getElementById('menu-btn-repair') : null;
+    const menuBtnQuit = doc ? doc.getElementById('menu-btn-quit') : null;
+    const menuBtnCheckUpdates = doc ? doc.getElementById('menu-btn-check-updates') : null;
+
+    // المان‌های تغییر کلید میانبر
+    const shortcutModal = doc ? doc.getElementById('shortcut-modal') : null;
+    const btnCloseShortcutModal = doc ? doc.getElementById('btn-close-shortcut-modal') : null;
+    const btnCancelShortcut = doc ? doc.getElementById('btn-cancel-shortcut') : null;
+    const btnSaveShortcut = doc ? doc.getElementById('btn-save-shortcut') : null;
+    const inputCustomShortcut = doc ? doc.getElementById('input-custom-shortcut') : null;
+    const menuBtnChangeShortcut = doc ? doc.getElementById('menu-btn-change-shortcut') : null;
+    const btnTrayChangeShortcut = doc ? doc.getElementById('btn-tray-change-shortcut') : null;
+    const displayShortcut = doc ? doc.getElementById('display-shortcut') : null;
+    const trayCurrentShortcut = doc ? doc.getElementById('tray-current-shortcut') : null;
 
     // مدال کارت تصویری
     const cardModal = doc ? doc.getElementById('card-modal') : null;
@@ -58,11 +94,58 @@
     let currentTheme = storage.getItem('rtl_theme') || 'zinc';
     let currentFontSize = parseFloat(storage.getItem('rtl_font_size')) || 14.5;
     let currentWindowStyle = storage.getItem('rtl_window_style') || (typeof navigator !== 'undefined' && /Macintosh|Mac OS X|iPhone|iPad/.test(navigator.userAgent) ? 'mac' : 'windows');
+    let currentShortcut = storage.getItem('rtl_shortcut') || 'Ctrl + Alt + F';
     let isPinned = false;
+
+    // تنظیمات نمایش دکمه‌های نوار ابزار
+    const DEFAULT_TOOLBAR_VIS = {
+        'toolbar-export-card': true,
+        'toolbar-clean-copy': true,
+        'toolbar-copy': true,
+        'toolbar-virastar': true,
+        'toolbar-digits': true,
+        'toolbar-font': true,
+        'toolbar-pin': true,
+    };
+
+    let toolbarVisibility = Object.assign({}, DEFAULT_TOOLBAR_VIS);
+    try {
+        const savedVis = storage.getItem('rtl_toolbar_vis');
+        if (savedVis) {
+            toolbarVisibility = Object.assign({}, DEFAULT_TOOLBAR_VIS, JSON.parse(savedVis));
+        }
+    } catch (e) {
+        console.warn('Failed to parse toolbar visibility:', e);
+    }
+
+    function applyToolbarVisibility() {
+        if (!doc) return;
+        for (const [id, isVisible] of Object.entries(toolbarVisibility)) {
+            const el = doc.getElementById(id);
+            if (el && el.classList && typeof el.classList.toggle === 'function') {
+                el.classList.toggle('toolbar-item-hidden', !isVisible);
+            }
+            const toggleInput = (typeof doc.querySelector === 'function') ? doc.querySelector(`input[data-target="${id}"]`) : null;
+            if (toggleInput) {
+                toggleInput.checked = isVisible;
+            }
+        }
+    }
+
+    function setToolbarItemVisibility(targetId, isVisible) {
+        toolbarVisibility[targetId] = isVisible;
+        storage.setItem('rtl_toolbar_vis', JSON.stringify(toolbarVisibility));
+        applyToolbarVisibility();
+    }
+
+    function updateShortcutDisplays() {
+        if (displayShortcut) displayShortcut.textContent = currentShortcut;
+        if (trayCurrentShortcut) trayCurrentShortcut.textContent = currentShortcut;
+    }
 
     // تبدیل ارقام به فارسی برای اعداد رابط کاربری
     function toFaDigits(num) {
-        if (window.Virastar && window.Virastar.toPersianDigits) {
+        if (typeof window !== 'undefined' && window.Virastar && window.Virastar.toPersianDigits) {
             return window.Virastar.toPersianDigits(num);
         }
         const farsiDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
@@ -77,6 +160,14 @@
         }
         if (themeSelect) {
             themeSelect.value = theme;
+        }
+        if (doc && typeof doc.querySelectorAll === 'function') {
+            const themeButtons = doc.querySelectorAll('.theme-opt-btn');
+            themeButtons.forEach(btn => {
+                if (btn && btn.classList && typeof btn.classList.toggle === 'function') {
+                    btn.classList.toggle('active', btn.getAttribute('data-theme-val') === theme);
+                }
+            });
         }
         storage.setItem('rtl_theme', theme);
     }
@@ -727,11 +818,23 @@
         renderContent();
     }
 
-    // بستن پنجره
+    // بستن پنجره یا مدال‌های فعال
     async function closePopup() {
         try {
             if (cardModal && cardModal.classList && cardModal.classList.contains('open')) {
                 closeCardModal();
+                return;
+            }
+            if (shortcutModal && isShortcutModalOpen) {
+                closeShortcutModal();
+                return;
+            }
+            if (traySettingsModal && isTraySettingsOpen) {
+                closeTraySettingsModal();
+                return;
+            }
+            if (hamburgerDropdown && isHamburgerOpen) {
+                toggleHamburgerMenu(false);
                 return;
             }
             if (typeof window !== 'undefined' && window.__TAURI__ && window.__TAURI__.core) {
@@ -741,6 +844,65 @@
             }
         } catch (err) {
             console.error('Failed to hide window:', err);
+        }
+    }
+
+    // باز و بسته کردن منوی همبرگری
+    function toggleHamburgerMenu(forceState) {
+        if (!hamburgerDropdown) return;
+        isHamburgerOpen = typeof forceState === 'boolean' ? forceState : !isHamburgerOpen;
+        if (isHamburgerOpen) {
+            hamburgerDropdown.classList.remove('hidden');
+        } else {
+            hamburgerDropdown.classList.add('hidden');
+        }
+    }
+
+    // باز و بسته کردن مدال تنظیمات ترِی
+    function openTraySettingsModal() {
+        toggleHamburgerMenu(false);
+        isTraySettingsOpen = true;
+        if (traySettingsModal) {
+            traySettingsModal.classList.remove('hidden');
+            if (trayToggleAlwaysTop) trayToggleAlwaysTop.checked = isPinned;
+        }
+    }
+
+    function closeTraySettingsModal() {
+        isTraySettingsOpen = false;
+        if (traySettingsModal) traySettingsModal.classList.add('hidden');
+    }
+
+    // باز و بسته کردن مدال تغییر میانبر
+    function openShortcutModal() {
+        toggleHamburgerMenu(false);
+        isShortcutModalOpen = true;
+        if (inputCustomShortcut) inputCustomShortcut.value = currentShortcut;
+        if (shortcutModal) shortcutModal.classList.remove('hidden');
+    }
+
+    function closeShortcutModal() {
+        isShortcutModalOpen = false;
+        if (shortcutModal) shortcutModal.classList.add('hidden');
+    }
+
+    // عملیات سلامت‌سنجی و بازیابی منابع (Repair Routine)
+    async function executeRepairRoutine() {
+        try {
+            if (typeof window !== 'undefined' && window.__TAURI__ && window.__TAURI__.core) {
+                await window.__TAURI__.core.invoke('repair_installation');
+            }
+            applyToolbarVisibility();
+            updateShortcutDisplays();
+            setTheme(currentTheme);
+            if (typeof alert !== 'undefined') {
+                alert('سیستم با موفقیت بررسی و تمام منابع، کش‌ها و تنظیمات برنامه بازیابی شدند ✔');
+            }
+        } catch (err) {
+            console.error('Repair error:', err);
+            if (typeof alert !== 'undefined') {
+                alert('عملیات بازیابی با خطا مواجه شد: ' + err);
+            }
         }
     }
 
@@ -756,6 +918,9 @@
             if (btnPin) {
                 btnPin.classList.toggle('active', isPinned);
                 btnPin.title = isPinned ? 'پنجره سنجاق شده است (همیشه رو)' : 'سنجاق کردن پنجره در بالا (Always on Top)';
+            }
+            if (trayToggleAlwaysTop) {
+                trayToggleAlwaysTop.checked = isPinned;
             }
         } catch (err) {
             console.error('Failed to toggle pin:', err);
@@ -796,6 +961,167 @@
     // ==========================================
     // رویدادهای دکمه‌ها و تعاملات
     // ==========================================
+
+    // کنترل‌های پنجره سفارشی (Minimize, Maximize, Close)
+    if (btnWinMinimize) {
+        btnWinMinimize.addEventListener('click', async () => {
+            if (typeof window !== 'undefined' && window.__TAURI__ && window.__TAURI__.core) {
+                await window.__TAURI__.core.invoke('minimize_window');
+            }
+        });
+    }
+
+    if (btnWinMaximize) {
+        btnWinMaximize.addEventListener('click', async () => {
+            if (typeof window !== 'undefined' && window.__TAURI__ && window.__TAURI__.core) {
+                await window.__TAURI__.core.invoke('toggle_maximize_window');
+            }
+        });
+    }
+
+    if (btnWinClose) {
+        btnWinClose.addEventListener('click', closePopup);
+    }
+
+    // دکمه منوی همبرگری
+    if (btnHamburger) {
+        btnHamburger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleHamburgerMenu();
+        });
+    }
+
+    // بستن منوی همبرگری هنگام کلیک در خارج از آن
+    if (doc) {
+        doc.addEventListener('click', (e) => {
+            if (hamburgerDropdown && !hamburgerDropdown.classList.contains('hidden')) {
+                if (!hamburgerDropdown.contains(e.target) && e.target !== btnHamburger && !btnHamburger.contains(e.target)) {
+                    hamburgerDropdown.classList.add('hidden');
+                }
+            }
+        });
+    }
+
+    // انتخاب تم از منوی همبرگری
+    if (doc && typeof doc.querySelectorAll === 'function') {
+        const themeButtons = doc.querySelectorAll('.theme-opt-btn');
+        themeButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const val = btn.getAttribute('data-theme-val');
+                if (val) {
+                    setTheme(val);
+                    if (cardModal && cardModal.classList.contains('open')) {
+                        renderActiveCard();
+                    }
+                }
+            });
+        });
+    }
+
+    // سوییچ‌های نمایش دکمه‌های نوار ابزار
+    if (doc && typeof doc.querySelectorAll === 'function') {
+        const toggleInputs = doc.querySelectorAll('.toolbar-toggles-list input[type="checkbox"]');
+        toggleInputs.forEach(input => {
+            input.addEventListener('change', (e) => {
+                const targetId = e.target.getAttribute('data-target');
+                if (targetId) {
+                    setToolbarItemVisibility(targetId, e.target.checked);
+                }
+            });
+        });
+    }
+
+    // اکشن‌های منوی همبرگری
+    if (menuBtnOpenTraySettings) menuBtnOpenTraySettings.addEventListener('click', openTraySettingsModal);
+    if (menuBtnChangeShortcut) menuBtnChangeShortcut.addEventListener('click', openShortcutModal);
+    if (menuBtnRepair) menuBtnRepair.addEventListener('click', executeRepairRoutine);
+    if (menuBtnQuit) menuBtnQuit.addEventListener('click', closePopup);
+
+    // تغییر تم از طریق سلکتور (جهت سازگاری کامل)
+    if (themeSelect) {
+        themeSelect.addEventListener('change', (e) => {
+            const val = (e && e.target && e.target.value) ? e.target.value : (themeSelect.value || currentTheme);
+            setTheme(val);
+            if (cardModal && cardModal.classList.contains('open')) {
+                renderActiveCard();
+            }
+        });
+    }
+
+    if (menuBtnCheckUpdates) {
+        menuBtnCheckUpdates.addEventListener('click', async () => {
+            try {
+                showButtonFeedback(menuBtnCheckUpdates, 'در حال بررسی...');
+                const res = await fetch('https://api.github.com/repos/Aria-Ebrm/rtl-view-tauri/releases/latest');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.tag_name && data.tag_name !== 'v2.3.0') {
+                        alert(`نسخه جدیدتر ${data.tag_name} در دسترس است!\nبرای دانلود به صفحه گیت‌هاب مراجعه کنید:\n${data.html_url}`);
+                    } else {
+                        alert('شما در حال استفاده از آخرین نسخه رسمی و پایدار (v2.3.0) هستید ✔');
+                    }
+                } else {
+                    alert('شما در حال حاضر از نسخه رسمی ۲.۳.۰ استفاده می‌کنید.');
+                }
+            } catch (e) {
+                alert('برنامه در حالت آفلاین است یا ارتباط با سرور گیت‌هاب برقرار نشد.');
+            }
+        });
+    }
+
+    // مدال تنظیمات ترِی
+    if (btnCloseTrayModal) btnCloseTrayModal.addEventListener('click', closeTraySettingsModal);
+    if (btnTrayModalClose) btnTrayModalClose.addEventListener('click', closeTraySettingsModal);
+    if (btnTrayModalQuit) btnTrayModalQuit.addEventListener('click', closePopup);
+    if (btnTrayRepair) btnTrayRepair.addEventListener('click', executeRepairRoutine);
+    if (btnTrayChangeShortcut) btnTrayChangeShortcut.addEventListener('click', openShortcutModal);
+
+    if (trayToggleAlwaysTop) {
+        trayToggleAlwaysTop.addEventListener('change', async () => {
+            await togglePin();
+        });
+    }
+
+    if (trayToggleAutostart) {
+        trayToggleAutostart.addEventListener('change', async () => {
+            if (typeof window !== 'undefined' && window.__TAURI__ && window.__TAURI__.core) {
+                try {
+                    const enabled = await window.__TAURI__.core.invoke('toggle_autostart_cmd');
+                    trayToggleAutostart.checked = enabled;
+                } catch (e) {
+                    console.error('Failed to toggle autostart:', e);
+                }
+            }
+        });
+    }
+
+    // مدال میانبر
+    if (btnCloseShortcutModal) btnCloseShortcutModal.addEventListener('click', closeShortcutModal);
+    if (btnCancelShortcut) btnCancelShortcut.addEventListener('click', closeShortcutModal);
+
+    if (doc && typeof doc.querySelectorAll === 'function') {
+        const presetBtns = doc.querySelectorAll('.shortcut-preset-btn');
+        presetBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const sc = btn.getAttribute('data-sc');
+                if (sc && inputCustomShortcut) {
+                    inputCustomShortcut.value = sc;
+                }
+            });
+        });
+    }
+
+    if (btnSaveShortcut) {
+        btnSaveShortcut.addEventListener('click', () => {
+            if (inputCustomShortcut && inputCustomShortcut.value.trim()) {
+                currentShortcut = inputCustomShortcut.value.trim();
+                storage.setItem('rtl_shortcut', currentShortcut);
+                updateShortcutDisplays();
+                closeShortcutModal();
+                showButtonFeedback(btnSaveShortcut, 'ذخیره شد!');
+            }
+        });
+    }
 
     // سوییچ ویراستار
     if (btnVirastar) {
@@ -888,16 +1214,6 @@
     if (btnFontDec) btnFontDec.addEventListener('click', () => setFontSize(currentFontSize - 1));
     if (btnFontInc) btnFontInc.addEventListener('click', () => setFontSize(currentFontSize + 1));
 
-    // تغییر تم
-    if (themeSelect) {
-        themeSelect.addEventListener('change', (e) => {
-            setTheme(e.target.value);
-            if (cardModal && cardModal.classList.contains('open')) {
-                renderActiveCard();
-            }
-        });
-    }
-
     // سوییچ استایل پنجره (ویندوز یا مک)
     if (btnStyleWindows) {
         btnStyleWindows.addEventListener('click', () => {
@@ -953,6 +1269,9 @@
         doc.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 closePopup();
+            } else if (e.altKey && (e.key === 'm' || e.key === 'M' || e.key === 'م')) {
+                e.preventDefault();
+                toggleHamburgerMenu();
             } else if (e.ctrlKey && (e.key === '+' || e.key === '=')) {
                 e.preventDefault();
                 setFontSize(currentFontSize + 1);
@@ -966,19 +1285,33 @@
         });
     }
 
-    // کلیک روی پس‌زمینه مدال برای بستن آن
+    // کلیک روی پس‌زمینه مدال‌ها برای بستن آن‌ها
     if (cardModal) {
         cardModal.addEventListener('click', (e) => {
-            if (e.target === cardModal) {
-                closeCardModal();
-            }
+            if (e.target === cardModal) closeCardModal();
+        });
+    }
+    if (traySettingsModal) {
+        traySettingsModal.addEventListener('click', (e) => {
+            if (e.target === traySettingsModal) closeTraySettingsModal();
+        });
+    }
+    if (shortcutModal) {
+        shortcutModal.addEventListener('click', (e) => {
+            if (e.target === shortcutModal) closeShortcutModal();
         });
     }
 
-    // شنود رویداد دریافت متن جدید از بک‌اند Rust
+    // شنود رویداد دریافت متن جدید و رویدادهای سیستم ترِی از بک‌اند Rust
     if (typeof window !== 'undefined' && window.__TAURI__ && window.__TAURI__.event) {
         window.__TAURI__.event.listen('new-content', (event) => {
             updateView(event.payload);
+        });
+        window.__TAURI__.event.listen('open-tray-settings', () => {
+            openTraySettingsModal();
+        });
+        window.__TAURI__.event.listen('trigger-repair', () => {
+            executeRepairRoutine();
         });
     }
 
@@ -987,6 +1320,8 @@
         window.addEventListener('DOMContentLoaded', async () => {
             setTheme(currentTheme);
             setFontSize(currentFontSize);
+            applyToolbarVisibility();
+            updateShortcutDisplays();
             if (btnVirastar) btnVirastar.classList.toggle('active', virastarEnabled);
             if (btnDigits) {
                 btnDigits.classList.toggle('active', digitsPersian);
@@ -1013,6 +1348,9 @@
         updateStats,
         renderContent,
         updateView,
+        setTheme,
+        setToolbarItemVisibility,
+        getToolbarVisibility: () => Object.assign({}, toolbarVisibility),
         getCurrentCleanText: () => currentCleanText,
     };
 

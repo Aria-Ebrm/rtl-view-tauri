@@ -42,17 +42,17 @@
 ---
 
 ### `01 // DOWNLOAD MATRIX`
-#### دریافت مستقیم آخرین نسخه پایدار (v2.2.0)
+#### دریافت مستقیم آخرین نسخه پایدار (v2.3.0)
 
 تمامی باینری‌ها توسط خط لوله خودکار GitHub Actions با فلگ‌های بهینه‌سازی `opt-level = 3` و `lto = true` کامپایل شده‌اند:
 
-| سیستم‌عامل | معماری | فرمت پکیج | حجم | لینک دانلود مستقیم |
+| سیستم‌عامل | معماری | فرمت پکیج | حجم تقریبی | لینک دانلود مستقیم |
 | :--- | :--- | :--- | :--- | :--- |
-| **Windows** | x64 (64-bit) | `.exe` (NSIS Setup) | ۱.۷۷ MB | [**دانلود نصاب خودکار Setup.exe**](https://github.com/Aria-Ebrm/rtl-view-tauri/releases/download/v2.2.0/RTL.View_2.2.0_x64-setup.exe) |
-| **Windows** | x64 (64-bit) | `.msi` (Windows Installer) | ۲.۵۷ MB | [دانلود پکیج سازمانی MSI](https://github.com/Aria-Ebrm/rtl-view-tauri/releases/download/v2.2.0/RTL.View_2.2.0_x64_en-US.msi) |
-| **macOS** | Universal (Intel & Apple Silicon M1-M4) | `.dmg` | ۴.۸۳ MB | [دانلود دیسک ایمیج DMG](https://github.com/Aria-Ebrm/rtl-view-tauri/releases/download/v2.2.0/RTL.View_2.2.0_universal.dmg) |
-| **Linux** | x86_64 | `.deb` (Debian / Ubuntu / Mint) | ۳.۰۶ MB | [دانلود پکیج دبیان DEB](https://github.com/Aria-Ebrm/rtl-view-tauri/releases/download/v2.2.0/RTL.View_2.2.0_amd64.deb) |
-| **Linux** | x86_64 | `.AppImage` (پرتابل مستقل) | ۷۸ MB | [دانلود نسخه مستقل AppImage](https://github.com/Aria-Ebrm/rtl-view-tauri/releases/download/v2.2.0/RTL.View_2.2.0_amd64.AppImage) |
+| **Windows** | x64 (64-bit) | `.exe` (NSIS Setup خودکار سبک) | ~۱.۸ MB | [**دانلود نصاب خودکار Setup.exe**](https://github.com/Aria-Ebrm/rtl-view-tauri/releases/download/v2.3.0/RTL.View_2.3.0_x64-setup.exe) |
+| **Windows** | x64 (64-bit) | `.msi` (Windows Installer سازمانی) | ~۲.۶ MB | [دانلود پکیج سازمانی MSI](https://github.com/Aria-Ebrm/rtl-view-tauri/releases/download/v2.3.0/RTL.View_2.3.0_x64_en-US.msi) |
+| **macOS** | Universal (Intel & Apple Silicon M1-M4) | `.dmg` | ~۴.۹ MB | [دانلود دیسک ایمیج DMG](https://github.com/Aria-Ebrm/rtl-view-tauri/releases/download/v2.3.0/RTL.View_2.3.0_universal.dmg) |
+| **Linux** | x86_64 | `.deb` (Debian / Ubuntu / Mint) | ~۳.۱ MB | [دانلود پکیج دبیان DEB](https://github.com/Aria-Ebrm/rtl-view-tauri/releases/download/v2.3.0/RTL.View_2.3.0_amd64.deb) |
+| **Linux** | x86_64 | `.AppImage` (پرتابل مستقل) | ~۷۸ MB | [دانلود نسخه مستقل AppImage](https://github.com/Aria-Ebrm/rtl-view-tauri/releases/download/v2.3.0/RTL.View_2.3.0_amd64.AppImage) |
 
 > برای مشاهده چک‌سام‌های امنیتی SHA-256 و سایر فرمت‌ها، به [صفحه انتشارهای گیت‌هاب (Releases)](https://github.com/Aria-Ebrm/rtl-view-tauri/releases/latest) مراجعه کنید.
 
@@ -79,14 +79,17 @@
 - **کپی مستقیم عکس در کلیپ‌بورد:** امکان پیست مستقیم تصویر کارت (`Ctrl + V`) در پیام‌رسان‌ها بدون نیاز به ذخیره فایل روی دیسک.
 
 #### 3. طراحی مینیمال بر پایه سیستم Geist ورسل (Design System)
+- **نوار عنوان سفارشی بدون فریم (Frameless Titlebar):** حذف قاب پیش‌فرض سیستم‌عامل، تعبیه دکمه‌های کنترلی مینیمال Lucide SVG (`― ▢ ✕`) و منوی همبرگری مدرن.
+- **منوی همبرگری و خلوت‌سازی نوار ابزار:** انتقال منوی تم‌ها به داخل منوی همبرگری و امکان فعال/غیرفعال‌سازی گزینشی تک‌تک دکمه‌های نوار ابزار (کارت عکس، کپی پاکیزه، ویراستار، اعداد و...).
+- **تنظیمات ترِی متحرک و بومی (Animated Tray Settings):** جایگزینی منوی کلاسیک با مدال تنظیمات زیبا، مجهز به انیمیشن‌های روان ورسل و تایپوگرافی چشم‌نواز وزیرمتن.
 - حاشیه‌های مویرگی ۱ پیکسلی (`#242424` / `#ebebeb`) و انحناهای گوشه استاندارد اپلیکیشن (`6px`).
-- جایگزینی کامل ایموجی‌ها با آیکون‌های وکتور استاندارد **Lucide SVG**.
 - ۵ تم رنگی باکنتراست بالا: **Zinc Dark**، **One Dark**، **Dracula**، **Gruvbox** و **Clean Light**.
 
-#### 4. کارایی بومی و امنیت صفر-دسترسی (Zero-Overhead & Local Security)
-- پیاده‌سازی شده با **Rust** و **Tauri v2** با مصرف رم کمتر از **۲۸ مگابایت**.
-- بدون هرگونه ارسال داده به خارج از سیستم؛ کلیه عملیات به صورت **۱۰۰٪ آفلاین و محلی** پردازش می‌شوند.
-- پالایش امنیتی متون و تگ‌های HTML با کتابخانه ضد نفوذ **Ammonia** پیش از رندر در وب‌ویو.
+#### 4. کارایی بومی، نصب مدرن و ابزار تعمیر (Zero-Overhead, Modern Installer & Repair)
+- **نصاب خودکار سبک سبک‌بال (Discord-style Installer):** نصب در سطح کاربر بدون درخواست ادمین (UAC) در پوشه محلی با شورت‌کات‌های خودکار.
+- **ابزار بازیابی و تعمیر داخلی (One-Click Repair & Reset):** بازنشانی سریع تنظیمات به حالت اولیه و پاکسازی کش بدون نیاز به نصب مجدد.
+- **تغییر داینامیک کلید میانبر سراسری:** امکان تغییر کلید میانبر `Ctrl + Alt + F` به کلیدهای دلخواه بدون راه‌اندازی مجدد برنامه.
+- پیاده‌سازی شده با **Rust** و **Tauri v2** با مصرف رم کمتر از **۲۸ مگابایت** و خط لوله امنیتی ضد نفوذ **Ammonia**.
 
 ---
 
