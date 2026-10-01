@@ -9,14 +9,14 @@
 <body>
     <!-- نوار عنوان سفارشی بدون فریم دیزاین سیستم Vercel Geist -->
     <div id="window-titlebar" class="window-titlebar" data-tauri-drag-region>
-        <div class="titlebar-right">
+        <div class="titlebar-left">
             <button id="btn-hamburger" class="titlebar-btn hamburger-btn" title="منوی اصلی و تنظیمات">
                 <svg class="lucide lucide-menu" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
             </button>
             <div class="titlebar-brand" data-tauri-drag-region>
                 <span class="dot"></span>
                 <span class="brand-title">RTL View</span>
-                <span class="brand-version">v2.3.0</span>
+                <span class="brand-version">v2.3.1</span>
             </div>
         </div>
 
@@ -24,7 +24,7 @@
             <!-- منطقه درگ پنجره -->
         </div>
 
-        <div class="titlebar-left">
+        <div class="titlebar-right">
             <button id="btn-win-minimize" class="titlebar-btn win-control-btn" title="کوچک‌سازی">
                 <svg class="lucide lucide-minus" xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/></svg>
             </button>
@@ -41,16 +41,21 @@
     <div id="hamburger-dropdown" class="hamburger-dropdown hidden" role="menu">
         <div class="dropdown-header">
             <span class="dropdown-title">تنظیمات و دسترسی سریع</span>
-            <span class="shortcut-tip"><kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>F</kbd></span>
+            <div class="dropdown-header-actions">
+                <span class="shortcut-tip"><kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>F</kbd></span>
+                <button id="btn-close-hamburger" class="btn-close-dropdown" title="بستن منو">
+                    <svg class="lucide lucide-x" xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                </button>
+            </div>
         </div>
 
         <!-- انتخابگر تم -->
         <div class="dropdown-section">
-            <div class="dropdown-section-title">پوسته و تم رنگی</div>
+            <div class="dropdown-section-title">پوسته و تم رنگی (Geist ورسل)</div>
             <div class="theme-options-grid">
                 <button class="theme-opt-btn active" data-theme-val="zinc">
                     <span class="theme-dot dot-zinc"></span>
-                    <span class="theme-name">Zinc تیره</span>
+                    <span class="theme-name">Geist تیره</span>
                 </button>
                 <button class="theme-opt-btn" data-theme-val="light">
                     <span class="theme-dot dot-light"></span>

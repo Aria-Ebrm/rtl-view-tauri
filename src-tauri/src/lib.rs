@@ -1,7 +1,6 @@
 use std::sync::Mutex;
 use tauri::{
-    menu::{CheckMenuItem, Menu, MenuItem},
-    tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
+    tray::{MouseButtonState, TrayIconBuilder, TrayIconEvent},
     AppHandle, Emitter, Manager, PhysicalSize, WebviewWindow,
 };
 use tauri_plugin_autostart::ManagerExt;
@@ -148,25 +147,8 @@ pub fn run() {
                 }
             });
 
-            // 2. ساخت منوی نوار وظیفه (System Tray)
-            let is_auto = handle.autolaunch().is_enabled().unwrap_or(false);
-
-            let title_item = MenuItem::with_id(&handle, "title", "نمایشگر راست‌چین RTL View", false, None::<&str>)?;
-            let settings_item = MenuItem::with_id(&handle, "settings", "تنظیمات برنامه و کلید میانبر", true, None::<&str>)?;
-            let startup_item = CheckMenuItem::with_id(&handle, "startup", "اجرا با روشن شدن سیستم (Startup)", true, is_auto, None::<&str>)?;
-            let repair_item = MenuItem::with_id(&handle, "repair", "تعمیر و بازنشانی برنامه (Repair)", true, None::<&str>)?;
-            let quit_item = MenuItem::with_id(&handle, "quit", "خروج از برنامه", true, None::<&str>)?;
-
-            let tray_menu = Menu::with_items(&handle, &[
-                &title_item,
-                &settings_item,
-                &startup_item,
-                &repair_item,
-                &quit_item,
-            ])?;
-
+            // 2. ساخت نوار وظیفه (System Tray) بدون منوی خاکستری پیش‌فرض سیستم‌عامل
             let mut tray_builder = TrayIconBuilder::new()
-                .menu(&tray_menu)
                 .tooltip("RTL View - نمایشگر راست‌چین (Ctrl+Alt+F)")
                 .show_menu_on_left_click(false);
 
@@ -175,48 +157,15 @@ pub fn run() {
             }
 
             let _tray = tray_builder
-                .on_menu_event(move |app, event| {
-                    match event.id().as_ref() {
-                        "settings" => {
-                            if let Some(w) = app.get_webview_window("main") {
-                                let _ = w.show();
-                                let _ = w.set_focus();
-                                let _ = w.emit("open-tray-settings", ());
-                            }
-                        }
-                        "startup" => {
-                            let mgr = app.autolaunch();
-                            if let Ok(enabled) = mgr.is_enabled() {
-                                if enabled {
-                                    let _ = mgr.disable();
-                                } else {
-                                    let _ = mgr.enable();
-                                }
-                            }
-                        }
-                        "repair" => {
-                            if let Some(w) = app.get_webview_window("main") {
-                                let _ = w.show();
-                                let _ = w.set_focus();
-                                let _ = w.emit("open-tray-settings", ());
-                                let _ = w.emit("trigger-repair", ());
-                            }
-                        }
-                        "quit" => {
-                            app.exit(0);
-                        }
-                        _ => {}
-                    }
-                })
                 .on_tray_icon_event(|tray, event| {
                     if let TrayIconEvent::Click {
-                        button: MouseButton::Left,
                         button_state: MouseButtonState::Up,
                         ..
                     } = event {
                         let app = tray.app_handle();
                         if let Some(w) = app.get_webview_window("main") {
                             let _ = w.show();
+                            let _ = w.unminimize();
                             let _ = w.set_focus();
                             let _ = w.emit("open-tray-settings", ());
                         }

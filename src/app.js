@@ -30,6 +30,7 @@
     const btnWinClose = doc ? doc.getElementById('btn-win-close') : null;
     const btnHamburger = doc ? doc.getElementById('btn-hamburger') : null;
     const hamburgerDropdown = doc ? doc.getElementById('hamburger-dropdown') : null;
+    const btnCloseHamburger = doc ? doc.getElementById('btn-close-hamburger') : null;
 
     // المان‌های پنل تنظیمات نوار وظیفه (Tray Settings Modal)
     const traySettingsModal = doc ? doc.getElementById('tray-settings-modal') : null;
@@ -165,7 +166,13 @@
             const themeButtons = doc.querySelectorAll('.theme-opt-btn');
             themeButtons.forEach(btn => {
                 if (btn && btn.classList && typeof btn.classList.toggle === 'function') {
-                    btn.classList.toggle('active', btn.getAttribute('data-theme-val') === theme);
+                    const btnVal = btn.getAttribute('data-theme-val');
+                    const isActive = (btnVal === theme) ||
+                        (theme === 'zinc' && btnVal === 'geist-dark') ||
+                        (theme === 'geist-dark' && btnVal === 'zinc') ||
+                        (theme === 'light' && btnVal === 'geist-light') ||
+                        (theme === 'geist-light' && btnVal === 'light');
+                    btn.classList.toggle('active', isActive);
                 }
             });
         }
@@ -818,7 +825,20 @@
         renderContent();
     }
 
-    // بستن پنجره یا مدال‌های فعال
+    // پنهان‌سازی پنجره برنامه
+    async function hideApplicationWindow() {
+        try {
+            if (typeof window !== 'undefined' && window.__TAURI__ && window.__TAURI__.core) {
+                await window.__TAURI__.core.invoke('hide_window');
+            } else if (typeof window !== 'undefined' && window.close) {
+                window.close();
+            }
+        } catch (err) {
+            console.error('Failed to hide window:', err);
+        }
+    }
+
+    // بستن پنجره یا مدال‌های فعال (با Esc)
     async function closePopup() {
         try {
             if (cardModal && cardModal.classList && cardModal.classList.contains('open')) {
@@ -837,24 +857,26 @@
                 toggleHamburgerMenu(false);
                 return;
             }
-            if (typeof window !== 'undefined' && window.__TAURI__ && window.__TAURI__.core) {
-                await window.__TAURI__.core.invoke('hide_window');
-            } else if (typeof window !== 'undefined' && window.close) {
-                window.close();
-            }
+            await hideApplicationWindow();
         } catch (err) {
-            console.error('Failed to hide window:', err);
+            console.error('Failed to close popup:', err);
         }
     }
 
     // باز و بسته کردن منوی همبرگری
     function toggleHamburgerMenu(forceState) {
         if (!hamburgerDropdown) return;
-        isHamburgerOpen = typeof forceState === 'boolean' ? forceState : !isHamburgerOpen;
+        if (typeof forceState === 'boolean') {
+            isHamburgerOpen = forceState;
+        } else {
+            isHamburgerOpen = hamburgerDropdown.classList.contains('hidden') || !hamburgerDropdown.classList.contains('open');
+        }
         if (isHamburgerOpen) {
             hamburgerDropdown.classList.remove('hidden');
+            hamburgerDropdown.classList.add('open');
         } else {
             hamburgerDropdown.classList.add('hidden');
+            hamburgerDropdown.classList.remove('open');
         }
     }
 
@@ -980,23 +1002,35 @@
     }
 
     if (btnWinClose) {
-        btnWinClose.addEventListener('click', closePopup);
+        btnWinClose.addEventListener('click', async (e) => {
+            if (e && e.stopPropagation) e.stopPropagation();
+            toggleHamburgerMenu(false);
+            await hideApplicationWindow();
+        });
     }
 
     // دکمه منوی همبرگری
     if (btnHamburger) {
         btnHamburger.addEventListener('click', (e) => {
-            e.stopPropagation();
+            if (e && e.stopPropagation) e.stopPropagation();
             toggleHamburgerMenu();
+        });
+    }
+
+    // دکمه بستن داخلی منوی همبرگری
+    if (btnCloseHamburger) {
+        btnCloseHamburger.addEventListener('click', (e) => {
+            if (e && e.stopPropagation) e.stopPropagation();
+            toggleHamburgerMenu(false);
         });
     }
 
     // بستن منوی همبرگری هنگام کلیک در خارج از آن
     if (doc) {
         doc.addEventListener('click', (e) => {
-            if (hamburgerDropdown && !hamburgerDropdown.classList.contains('hidden')) {
-                if (!hamburgerDropdown.contains(e.target) && e.target !== btnHamburger && !btnHamburger.contains(e.target)) {
-                    hamburgerDropdown.classList.add('hidden');
+            if (hamburgerDropdown && isHamburgerOpen) {
+                if (!hamburgerDropdown.contains(e.target) && e.target !== btnHamburger && (!btnHamburger || !btnHamburger.contains(e.target))) {
+                    toggleHamburgerMenu(false);
                 }
             }
         });
@@ -1055,13 +1089,13 @@
                 const res = await fetch('https://api.github.com/repos/Aria-Ebrm/rtl-view-tauri/releases/latest');
                 if (res.ok) {
                     const data = await res.json();
-                    if (data.tag_name && data.tag_name !== 'v2.3.0') {
+                    if (data.tag_name && data.tag_name !== 'v2.3.1') {
                         alert(`نسخه جدیدتر ${data.tag_name} در دسترس است!\nبرای دانلود به صفحه گیت‌هاب مراجعه کنید:\n${data.html_url}`);
                     } else {
-                        alert('شما در حال استفاده از آخرین نسخه رسمی و پایدار (v2.3.0) هستید ✔');
+                        alert('شما در حال استفاده از آخرین نسخه رسمی و پایدار (v2.3.1) هستید ✔');
                     }
                 } else {
-                    alert('شما در حال حاضر از نسخه رسمی ۲.۳.۰ استفاده می‌کنید.');
+                    alert('شما در حال حاضر از نسخه رسمی ۲.۳.۱ استفاده می‌کنید.');
                 }
             } catch (e) {
                 alert('برنامه در حالت آفلاین است یا ارتباط با سرور گیت‌هاب برقرار نشد.');
@@ -1205,7 +1239,13 @@
     }
 
     // بستن
-    if (btnClose) btnClose.addEventListener('click', closePopup);
+    if (btnClose) {
+        btnClose.addEventListener('click', async (e) => {
+            if (e && e.stopPropagation) e.stopPropagation();
+            toggleHamburgerMenu(false);
+            await hideApplicationWindow();
+        });
+    }
 
     // پین
     if (btnPin) btnPin.addEventListener('click', togglePin);
