@@ -108,6 +108,40 @@ fn update_global_shortcut(app: AppHandle, shortcut_str: String) -> Result<String
     Ok(clean)
 }
 
+#[tauri::command]
+fn open_main_window(app: AppHandle) -> Result<(), String> {
+    if let Some(tray_w) = app.get_webview_window("tray") {
+        let _ = tray_w.hide();
+    }
+    if let Some(w) = app.get_webview_window("main") {
+        let _ = w.show();
+        let _ = w.unminimize();
+        let _ = w.center();
+        let _ = w.set_focus();
+    }
+    Ok(())
+}
+
+#[tauri::command]
+fn open_main_settings(app: AppHandle) -> Result<(), String> {
+    if let Some(tray_w) = app.get_webview_window("tray") {
+        let _ = tray_w.hide();
+    }
+    if let Some(w) = app.get_webview_window("main") {
+        let _ = w.show();
+        let _ = w.unminimize();
+        let _ = w.center();
+        let _ = w.set_focus();
+        let _ = w.emit("open-tray-settings", ());
+    }
+    Ok(())
+}
+
+#[tauri::command]
+fn quit_app(app: AppHandle) {
+    app.exit(0);
+}
+
 /// محاسبه اندازه پویای پنجره متناسب با طول متن
 fn calculate_window_size(len: usize) -> (u32, u32) {
     if len < 150 {
@@ -180,21 +214,59 @@ pub fn run() {
             let _tray = tray_builder
                 .on_tray_icon_event(|tray, event| {
                     if let TrayIconEvent::Click {
+                        position,
                         button_state: MouseButtonState::Up,
                         ..
                     } = event {
                         let app = tray.app_handle();
-                        if let Some(w) = app.get_webview_window("main") {
-                            let _ = w.show();
-                            let _ = w.unminimize();
-                            let _ = w.set_focus();
-                            let _ = w.emit("open-tray-settings", ());
+                        if let Some(tray_win) = app.get_webview_window("tray") {
+                            let is_visible = tray_win.is_visible().unwrap_or(false);
+                            if is_visible {
+                                let _ = tray_win.hide();
+                            } else {
+                                let tray_w = 260;
+                                let tray_h = 230;
+
+                                #[cfg(target_os = "windows")]
+                                {
+                                    use windows_sys::Win32::UI::WindowsAndMessaging::{GetCursorPos, POINT};
+                                    let mut pt = POINT { x: 0, y: 0 };
+                                    unsafe { GetCursorPos(&mut pt); }
+                                    let mut x = pt.x - (tray_w / 2);
+                                    let mut y = pt.y - tray_h - 10;
+                                    if x < 10 { x = 10; }
+                                    if y < 10 { y = 10; }
+                                    let _ = tray_win.set_position(tauri::Position::Physical(tauri::PhysicalPosition::new(x, y)));
+                                }
+
+                                #[cfg(not(target_os = "windows"))]
+                                {
+                                    let mut x = (position.x as i32) - (tray_w / 2);
+                                    let mut y = (position.y as i32) - tray_h - 10;
+                                    if x < 10 { x = 10; }
+                                    if y < 10 { y = 10; }
+                                    let _ = tray_win.set_position(tauri::Position::Physical(tauri::PhysicalPosition::new(x, y)));
+                                }
+
+                                let _ = tray_win.show();
+                                let _ = tray_win.set_focus();
+                            }
                         }
                     }
                 })
                 .build(app)?;
 
-            // 3. جلوگیری از بسته شدن کامل برنامه با دکمه ضربدر (پنهان شدن در Tray)
+            // 3. پنجره اختصاصی نوار وظیفه (Tray Flyout) با از دست دادن فوکوس پنهان می‌شود
+            if let Some(tray_win) = app.get_webview_window("tray") {
+                let tray_win_clone = tray_win.clone();
+                tray_win.on_window_event(move |event| {
+                    if let tauri::WindowEvent::Focused(false) = event {
+                        let _ = tray_win_clone.hide();
+                    }
+                });
+            }
+
+            // 4. جلوگیری از بسته شدن کامل برنامه با دکمه ضربدر (پنهان شدن در Tray)
             if let Some(window) = app.get_webview_window("main") {
                 let win_clone = window.clone();
                 window.on_window_event(move |event| {
@@ -205,7 +277,7 @@ pub fn run() {
                 });
             }
 
-            // 4. در صورت اجرای خودکار با استارتاپ ویندوز، پنجره در حالت مینیمایز مخفی می‌ماند
+            // 5. در صورت اجرای خودکار با استارتاپ ویندوز، پنجره در حالت مینیمایز مخفی می‌ماند
             if std::env::args().any(|arg| arg == "--minimized") {
                 if let Some(w) = app.get_webview_window("main") {
                     let _ = w.hide();
@@ -222,7 +294,10 @@ pub fn run() {
             toggle_autostart_cmd,
             toggle_always_on_top,
             repair_installation,
-            update_global_shortcut
+            update_global_shortcut,
+            open_main_window,
+            open_main_settings,
+            quit_app
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

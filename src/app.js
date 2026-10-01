@@ -1082,8 +1082,18 @@
     // اکشن‌های منوی همبرگری
     if (menuBtnOpenTraySettings) menuBtnOpenTraySettings.addEventListener('click', openTraySettingsModal);
     if (menuBtnChangeShortcut) menuBtnChangeShortcut.addEventListener('click', openShortcutModal);
+    async function exitApplication() {
+        if (typeof window !== 'undefined' && window.__TAURI__ && window.__TAURI__.core) {
+            try {
+                await window.__TAURI__.core.invoke('quit_app');
+                return;
+            } catch (_) {}
+        }
+        closePopup();
+    }
+
     if (menuBtnRepair) menuBtnRepair.addEventListener('click', executeRepairRoutine);
-    if (menuBtnQuit) menuBtnQuit.addEventListener('click', closePopup);
+    if (menuBtnQuit) menuBtnQuit.addEventListener('click', exitApplication);
 
     // تغییر تم از طریق سلکتور (جهت سازگاری کامل)
     if (themeSelect) {
@@ -1099,7 +1109,7 @@
     // مدال تنظیمات ترِی
     if (btnCloseTrayModal) btnCloseTrayModal.addEventListener('click', closeTraySettingsModal);
     if (btnTrayModalClose) btnTrayModalClose.addEventListener('click', closeTraySettingsModal);
-    if (btnTrayModalQuit) btnTrayModalQuit.addEventListener('click', closePopup);
+    if (btnTrayModalQuit) btnTrayModalQuit.addEventListener('click', exitApplication);
     if (btnTrayRepair) btnTrayRepair.addEventListener('click', executeRepairRoutine);
     if (btnTrayChangeShortcut) btnTrayChangeShortcut.addEventListener('click', openShortcutModal);
 
