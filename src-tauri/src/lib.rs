@@ -47,6 +47,11 @@ fn hide_window(window: WebviewWindow) {
 }
 
 #[tauri::command]
+fn start_dragging(window: WebviewWindow) -> Result<(), String> {
+    window.start_dragging().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
 fn minimize_window(window: WebviewWindow) -> Result<(), String> {
     window.minimize().map_err(|e| e.to_string())
 }
@@ -249,15 +254,51 @@ pub fn run() {
                             if is_visible {
                                 let _ = tray_win.hide();
                             } else {
-                                let tray_w = 260;
-                                let tray_h = 230;
+                                let monitor = tray_win.current_monitor().ok().flatten();
+                                let scale_factor = monitor.as_ref().map(|m| m.scale_factor()).unwrap_or(1.0);
+                                let physical_size = tray_win.outer_size().unwrap_or(tauri::PhysicalSize::new(
+                                    (240.0 * scale_factor) as u32,
+                                    (205.0 * scale_factor) as u32,
+                                ));
 
-                                let mut x = (position.x as i32) - (tray_w / 2);
-                                let mut y = (position.y as i32) - tray_h - 12;
-                                if x < 10 { x = 10; }
-                                if y < 10 { y = 10; }
+                                let win_w = physical_size.width as i32;
+                                let win_h = physical_size.height as i32;
+                                let icon_x = position.x as i32;
+                                let icon_y = position.y as i32;
+
+                                let mut x = icon_x - (win_w / 2);
+                                let mut y = icon_y - win_h - (12.0 * scale_factor) as i32;
+
+                                if let Some(ref m) = monitor {
+                                    let m_pos = m.position();
+                                    let m_size = m.size();
+                                    let screen_left = m_pos.x;
+                                    let screen_right = m_pos.x + m_size.width as i32;
+                                    let screen_top = m_pos.y;
+
+                                    let margin_x = (12.0 * scale_factor) as i32;
+                                    if x + win_w > screen_right - margin_x {
+                                        x = screen_right - win_w - margin_x;
+                                    }
+                                    if x < screen_left + margin_x {
+                                        x = screen_left + margin_x;
+                                    }
+
+                                    // اطمینان از قرارگیری پنجره دقیقاً بالای تسک‌بار و آیکون‌ها
+                                    let max_bottom = icon_y - (8.0 * scale_factor) as i32;
+                                    if y + win_h > max_bottom {
+                                        y = max_bottom - win_h;
+                                    }
+                                    let margin_y = (12.0 * scale_factor) as i32;
+                                    if y < screen_top + margin_y {
+                                        y = screen_top + margin_y;
+                                    }
+                                } else {
+                                    if x < 10 { x = 10; }
+                                    if y < 10 { y = 10; }
+                                }
+
                                 let _ = tray_win.set_position(tauri::Position::Physical(tauri::PhysicalPosition::new(x, y)));
-
                                 let _ = tray_win.show();
                                 let _ = tray_win.set_focus();
                             }
@@ -299,6 +340,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             get_current_content,
             hide_window,
+            start_dragging,
             minimize_window,
             toggle_maximize_window,
             toggle_autostart_cmd,

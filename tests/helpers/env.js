@@ -259,6 +259,23 @@ function createMockElement(id = '', tagName = 'div') {
                 listeners['click'].forEach(fn => fn({ preventDefault: () => {}, stopPropagation: () => {} }));
             }
         },
+        dispatchEvent: function(event, data = {}) {
+            if (listeners[event]) {
+                const evt = {
+                    type: event,
+                    target: data.target || el,
+                    button: data.button !== undefined ? data.button : 0,
+                    preventDefault: () => {},
+                    stopPropagation: () => {},
+                    ...data
+                };
+                listeners[event].forEach(fn => fn(evt));
+            }
+        },
+        closest: function(sel) {
+            if (sel.includes(tagName.toLowerCase()) || (id && sel.includes('#' + id))) return el;
+            return null;
+        },
         _dispatch: function(event, evtObj = {}) {
             if (listeners[event]) {
                 listeners[event].forEach(fn => fn({ target: el, currentTarget: el, preventDefault: () => {}, stopPropagation: () => {}, ...evtObj }));
@@ -309,6 +326,11 @@ function loadApp(overrides = {}) {
         'btn-cancel-shortcut': createMockElement('btn-cancel-shortcut', 'button'),
         'menu-btn-change-shortcut': createMockElement('menu-btn-change-shortcut', 'button'),
         'btn-tray-change-shortcut': createMockElement('btn-tray-change-shortcut', 'button'),
+        'window-titlebar': createMockElement('window-titlebar', 'div'),
+        'btn-hamburger': createMockElement('btn-hamburger', 'button'),
+        'btn-win-minimize': createMockElement('btn-win-minimize', 'button'),
+        'btn-win-maximize': createMockElement('btn-win-maximize', 'button'),
+        'btn-win-close': createMockElement('btn-win-close', 'button'),
     };
 
     const docListeners = {};

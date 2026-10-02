@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "RTL View",
-  "version": "2.3.6",
+  "version": "2.3.7",
   "identifier": "com.rtlview.desktop",
   "build": {
     "frontendDist": "../src"
@@ -28,14 +28,15 @@
         "label": "tray",
         "title": "RTL View Tray",
         "url": "tray.html",
-        "width": 260,
-        "height": 230,
+        "width": 240,
+        "height": 205,
         "resizable": false,
         "fullscreen": false,
         "alwaysOnTop": true,
         "visible": false,
         "decorations": false,
         "transparent": true,
+        "shadow": false,
         "skipTaskbar": true
       }
     ],

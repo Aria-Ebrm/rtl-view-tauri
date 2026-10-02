@@ -198,6 +198,7 @@ body {
     padding: 0 4px;
     user-select: none;
     -webkit-user-select: none;
+    -webkit-app-region: drag;
     position: relative;
     z-index: 1000;
 }
@@ -212,6 +213,7 @@ body {
 .titlebar-center {
     flex: 1;
     height: 100%;
+    -webkit-app-region: drag;
 }
 
 .titlebar-btn {
@@ -226,6 +228,7 @@ body {
     align-items: center;
     justify-content: center;
     transition: all 0.12s ease;
+    -webkit-app-region: no-drag;
 }
 
 .titlebar-btn:hover {

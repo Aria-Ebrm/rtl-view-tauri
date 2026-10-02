@@ -208,4 +208,45 @@ test('Tier 1: Feature Coverage - App State, UI & OS Events', async (t) => {
         assert.ok(app.elements['content-body'].innerHTML.includes('empty-state'), 'Empty selection must show empty state');
         assert.ok(!app.elements['content-body'].innerHTML.includes('متن انتخابی دوم'), 'Must NOT retain second selection on empty capture');
     });
+
+    await t.test('6.9 Window titlebar dragging triggers start_dragging on mousedown and ignores button clicks', async () => {
+        const app = loadApp();
+        app.triggerDOMContentLoaded();
+
+        const titlebar = app.elements['window-titlebar'];
+        assert.ok(titlebar, 'window-titlebar must exist');
+
+        // 1. Mousedown on titlebar itself with primary mouse button (button: 0)
+        app.tauriInvocations.length = 0;
+        titlebar.dispatchEvent('mousedown', {
+            button: 0,
+            target: titlebar,
+        });
+
+        await new Promise(r => setImmediate(r));
+        const hasStartDragging = app.tauriInvocations.some(inv => inv.cmd === 'start_dragging');
+        assert.ok(hasStartDragging, 'start_dragging must be invoked on titlebar mousedown');
+
+        // 2. Mousedown with secondary button (button: 2) should NOT trigger start_dragging
+        app.tauriInvocations.length = 0;
+        titlebar.dispatchEvent('mousedown', {
+            button: 2,
+            target: titlebar,
+        });
+        await new Promise(r => setImmediate(r));
+        const hasSecondaryDrag = app.tauriInvocations.some(inv => inv.cmd === 'start_dragging');
+        assert.strictEqual(hasSecondaryDrag, false, 'Non-primary click must not invoke start_dragging');
+
+        // 3. Mousedown inside a button (e.g. hamburger button) should NOT trigger start_dragging
+        app.tauriInvocations.length = 0;
+        const btnHamburger = app.elements['btn-hamburger'];
+        btnHamburger.closest = (sel) => sel.includes('button') ? btnHamburger : null;
+        titlebar.dispatchEvent('mousedown', {
+            button: 0,
+            target: btnHamburger,
+        });
+        await new Promise(r => setImmediate(r));
+        const hasButtonDrag = app.tauriInvocations.some(inv => inv.cmd === 'start_dragging');
+        assert.strictEqual(hasButtonDrag, false, 'Button click inside titlebar must NOT invoke start_dragging');
+    });
 });

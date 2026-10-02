@@ -25,6 +25,7 @@
     let isShortcutModalOpen = false;
 
     // المان‌های نوار عنوان سفارشی و کنترل پنجره
+    const windowTitlebar = doc ? doc.getElementById('window-titlebar') : null;
     const btnWinMinimize = doc ? doc.getElementById('btn-win-minimize') : null;
     const btnWinMaximize = doc ? doc.getElementById('btn-win-maximize') : null;
     const btnWinClose = doc ? doc.getElementById('btn-win-close') : null;
@@ -1024,6 +1025,24 @@
     // ==========================================
     // رویدادهای دکمه‌ها و تعاملات
     // ==========================================
+
+    // جابه‌جایی روان و مطمئن پنجره با کشیدن نوار عنوان (Window Dragging)
+    if (windowTitlebar) {
+        windowTitlebar.addEventListener('mousedown', async (e) => {
+            if (e.target.closest('button, a, input, select, textarea, .hamburger-dropdown')) {
+                return;
+            }
+            if (e.button === 0) {
+                try {
+                    if (typeof window !== 'undefined' && window.__TAURI__ && window.__TAURI__.core) {
+                        await window.__TAURI__.core.invoke('start_dragging');
+                    }
+                } catch (err) {
+                    console.error('start_dragging invoke failed:', err);
+                }
+            }
+        });
+    }
 
     // کنترل‌های پنجره سفارشی (Minimize, Maximize, Close)
     if (btnWinMinimize) {
