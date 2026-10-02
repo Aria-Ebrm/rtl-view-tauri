@@ -299,6 +299,16 @@ function loadApp(overrides = {}) {
         'btn-save-card-img': createMockElement('btn-save-card-img', 'button'),
         'btn-style-windows': createMockElement('btn-style-windows', 'button'),
         'btn-style-mac': createMockElement('btn-style-mac', 'button'),
+        'display-shortcut': createMockElement('display-shortcut', 'kbd'),
+        'menu-display-shortcut': createMockElement('menu-display-shortcut', 'kbd'),
+        'tray-current-shortcut': createMockElement('tray-current-shortcut', 'code'),
+        'shortcut-modal': createMockElement('shortcut-modal', 'div'),
+        'input-custom-shortcut': createMockElement('input-custom-shortcut', 'input'),
+        'btn-save-shortcut': createMockElement('btn-save-shortcut', 'button'),
+        'btn-close-shortcut-modal': createMockElement('btn-close-shortcut-modal', 'button'),
+        'btn-cancel-shortcut': createMockElement('btn-cancel-shortcut', 'button'),
+        'menu-btn-change-shortcut': createMockElement('menu-btn-change-shortcut', 'button'),
+        'btn-tray-change-shortcut': createMockElement('btn-tray-change-shortcut', 'button'),
     };
 
     const docListeners = {};
@@ -409,6 +419,13 @@ function loadApp(overrides = {}) {
         mockDoc,
         tauriEvents,
         tauriInvocations,
+        localStorage: mockWin.localStorage,
+        rtlApp: sandbox.window.RtlApp,
+        triggerDOMContentLoaded: () => {
+            if (winListeners['DOMContentLoaded']) {
+                winListeners['DOMContentLoaded'].forEach(fn => fn());
+            }
+        },
         emitTauriEvent: (event, payload) => {
             if (tauriEvents[event]) {
                 tauriEvents[event].forEach(fn => fn({ payload }));

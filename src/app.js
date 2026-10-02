@@ -53,6 +53,7 @@
     const menuBtnChangeShortcut = doc ? doc.getElementById('menu-btn-change-shortcut') : null;
     const btnTrayChangeShortcut = doc ? doc.getElementById('btn-tray-change-shortcut') : null;
     const displayShortcut = doc ? doc.getElementById('display-shortcut') : null;
+    const menuDisplayShortcut = doc ? doc.getElementById('menu-display-shortcut') : null;
     const trayCurrentShortcut = doc ? doc.getElementById('tray-current-shortcut') : null;
 
     // مدال کارت تصویری
@@ -138,9 +139,35 @@
         applyToolbarVisibility();
     }
 
+    function formatShortcutDisplay(sc) {
+        if (!sc) return 'Ctrl + Alt + F';
+        return sc.split('+').map(part => part.trim()).join(' + ');
+    }
+
+    function getEmptyStateHtml(shortcut) {
+        const sc = formatShortcutDisplay(shortcut || currentShortcut || 'Ctrl + Alt + F');
+        return `<div class="empty-state" style="text-align: center; padding: 24px 16px;">
+            <div style="font-size: 20px; font-weight: bold; margin-bottom: 12px; color: #60a5fa;">برنامه RTL View فعال است ✔</div>
+            <p style="color: #cbd5e1; margin-bottom: 12px; font-size: 14px;">متن دلخواه خود را در هر برنامه‌ای انتخاب کنید و کلیدهای میانبر زیر را فشار دهید:</p>
+            <div id="empty-state-shortcut" style="display: inline-block; background: #1e293b; border: 1px solid #475569; border-radius: 8px; padding: 8px 20px; font-size: 18px; font-weight: bold; color: #38bdf8; margin: 8px 0; letter-spacing: 1px;">${escapeHtml(sc)}</div>
+            <p style="font-size: 12px; color: #94a3b8; margin-top: 16px;">این پنجره با کلید Esc پنهان می‌شود و در نوار وظیفه کنار ساعت (System Tray) به کار خود ادامه می‌دهد.</p>
+        </div>`;
+    }
+
     function updateShortcutDisplays() {
-        if (displayShortcut) displayShortcut.textContent = currentShortcut;
-        if (trayCurrentShortcut) trayCurrentShortcut.textContent = currentShortcut;
+        const formatted = formatShortcutDisplay(currentShortcut);
+        if (displayShortcut) displayShortcut.textContent = formatted;
+        if (menuDisplayShortcut) menuDisplayShortcut.textContent = formatted;
+        if (trayCurrentShortcut) trayCurrentShortcut.textContent = formatted;
+
+        if (currentRawData && (currentRawData.is_empty || (currentRawData.html && currentRawData.html.includes('empty-state')))) {
+            renderContent();
+        } else {
+            const emptyStateShortcutEl = doc ? doc.getElementById('empty-state-shortcut') : null;
+            if (emptyStateShortcutEl) {
+                emptyStateShortcutEl.textContent = formatted;
+            }
+        }
     }
 
     // تبدیل ارقام به فارسی برای اعداد رابط کاربری
@@ -760,7 +787,7 @@
         if (currentRawData.is_empty || rawHtml.includes('empty-state')) {
             currentCleanText = '';
             if (contentBody) {
-                contentBody.innerHTML = rawHtml;
+                contentBody.innerHTML = getEmptyStateHtml(currentShortcut);
             }
             updateStats('');
             return;
@@ -911,7 +938,7 @@
     function openShortcutModal() {
         toggleHamburgerMenu(false);
         isShortcutModalOpen = true;
-        if (inputCustomShortcut) inputCustomShortcut.value = currentShortcut;
+        if (inputCustomShortcut) inputCustomShortcut.value = formatShortcutDisplay(currentShortcut);
         showModal(shortcutModal);
     }
 
@@ -1142,7 +1169,7 @@
             btn.addEventListener('click', () => {
                 const sc = btn.getAttribute('data-sc');
                 if (sc && inputCustomShortcut) {
-                    inputCustomShortcut.value = sc;
+                    inputCustomShortcut.value = formatShortcutDisplay(sc);
                 }
             });
         });
@@ -1152,11 +1179,12 @@
         btnSaveShortcut.addEventListener('click', async () => {
             if (inputCustomShortcut && inputCustomShortcut.value.trim()) {
                 const newSc = inputCustomShortcut.value.trim();
+                const cleanSc = newSc.replace(/\s+/g, '');
                 try {
                     if (typeof window !== 'undefined' && window.__TAURI__ && window.__TAURI__.core) {
-                        await window.__TAURI__.core.invoke('update_global_shortcut', { shortcutStr: newSc });
+                        await window.__TAURI__.core.invoke('update_global_shortcut', { shortcutStr: cleanSc });
                     }
-                    currentShortcut = newSc;
+                    currentShortcut = formatShortcutDisplay(newSc);
                     storage.setItem('rtl_shortcut', currentShortcut);
                     updateShortcutDisplays();
                     closeShortcutModal();
@@ -1367,11 +1395,19 @@
         window.__TAURI__.event.listen('trigger-repair', () => {
             executeRepairRoutine();
         });
+        window.__TAURI__.event.listen('shortcut-updated', (event) => {
+            if (event.payload) {
+                currentShortcut = formatShortcutDisplay(event.payload);
+                storage.setItem('rtl_shortcut', currentShortcut);
+                updateShortcutDisplays();
+            }
+        });
     }
 
     // بارگذاری اولیه
     if (typeof window !== 'undefined') {
         window.addEventListener('DOMContentLoaded', async () => {
+            currentShortcut = formatShortcutDisplay(currentShortcut);
             setTheme(currentTheme);
             setFontSize(currentFontSize);
             applyToolbarVisibility();
@@ -1385,7 +1421,8 @@
             try {
                 if (window.__TAURI__ && window.__TAURI__.core) {
                     if (currentShortcut && currentShortcut !== 'Ctrl+Alt+F' && currentShortcut !== 'Ctrl + Alt + F') {
-                        window.__TAURI__.core.invoke('update_global_shortcut', { shortcutStr: currentShortcut }).catch(e => console.warn('Custom shortcut restore failed:', e));
+                        const cleanSc = currentShortcut.replace(/\s+/g, '');
+                        window.__TAURI__.core.invoke('update_global_shortcut', { shortcutStr: cleanSc }).catch(e => console.warn('Custom shortcut restore failed:', e));
                     }
                     const initial = await window.__TAURI__.core.invoke('get_current_content');
                     updateView(initial);

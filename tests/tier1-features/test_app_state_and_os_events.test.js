@@ -122,4 +122,90 @@ test('Tier 1: Feature Coverage - App State, UI & OS Events', async (t) => {
         assert.deepStrictEqual(calculateWindowSize(600), [920, 640]);
         assert.deepStrictEqual(calculateWindowSize(100000), [920, 640]);
     });
+
+    await t.test('6.7 Shortcut setting update reflects across main window UI, empty state, and storage', async () => {
+        const app = loadApp();
+        app.triggerDOMContentLoaded();
+
+        // Initial shortcut is default
+        assert.strictEqual(app.elements['display-shortcut'].textContent, 'Ctrl + Alt + F');
+        assert.strictEqual(app.elements['menu-display-shortcut'].textContent, 'Ctrl + Alt + F');
+        assert.strictEqual(app.elements['tray-current-shortcut'].textContent, 'Ctrl + Alt + F');
+
+        // Initial empty-state should display formatted default shortcut
+        app.emitTauriEvent('new-content', {
+            raw_text: '',
+            html: '',
+            visible_length: 0,
+            is_empty: true,
+            is_html: false,
+        });
+        assert.ok(app.elements['content-body'].innerHTML.includes('Ctrl + Alt + F'), 'Empty state must show default shortcut');
+
+        // User changes shortcut to Ctrl + Shift + R
+        app.elements['input-custom-shortcut'].value = 'Ctrl+Shift+R';
+        app.elements['btn-save-shortcut'].click();
+
+        // Wait microtasks for async click listener to finish
+        await new Promise(r => setImmediate(r));
+
+        // Main window header display, hamburger menu display, and tray current display MUST be updated
+        assert.strictEqual(app.elements['display-shortcut'].textContent, 'Ctrl + Shift + R', 'Header display must show new shortcut');
+        assert.strictEqual(app.elements['menu-display-shortcut'].textContent, 'Ctrl + Shift + R', 'Menu display must show new shortcut');
+        assert.strictEqual(app.elements['tray-current-shortcut'].textContent, 'Ctrl + Shift + R', 'Tray modal display must show new shortcut');
+
+        // Main page empty-state MUST immediately display the new shortcut
+        assert.ok(app.elements['content-body'].innerHTML.includes('Ctrl + Shift + R'), 'Main page empty state must immediately show new shortcut');
+        assert.ok(!app.elements['content-body'].innerHTML.includes('Ctrl + Alt + F'), 'Main page must NOT retain old shortcut in empty state');
+
+        // LocalStorage must persist the updated shortcut
+        assert.strictEqual(app.localStorage.getItem('rtl_shortcut'), 'Ctrl + Shift + R');
+    });
+
+    await t.test('6.8 Consecutive text selections update correctly and never retain previous selection', () => {
+        const app = loadApp();
+        app.triggerDOMContentLoaded();
+
+        // 1. First selection arrives
+        const firstSelection = 'متن انتخابی اول: سلام دنیا';
+        app.emitTauriEvent('new-content', {
+            raw_text: firstSelection,
+            html: '',
+            visible_length: firstSelection.length,
+            is_empty: false,
+            is_html: false,
+        });
+
+        assert.ok(app.elements['content-body'].innerHTML.includes('متن انتخابی اول'));
+        assert.strictEqual(app.rtlApp.getCurrentCleanText().includes('متن انتخابی اول'), true);
+
+        // 2. Second, completely new selection arrives
+        const secondSelection = 'متن انتخابی دوم: گزارش جدید پروژه';
+        app.emitTauriEvent('new-content', {
+            raw_text: secondSelection,
+            html: '',
+            visible_length: secondSelection.length,
+            is_empty: false,
+            is_html: false,
+        });
+
+        // The view MUST show the second selection and MUST NOT retain the first selection
+        assert.ok(app.elements['content-body'].innerHTML.includes('متن انتخابی دوم'), 'View must contain second selection');
+        assert.ok(!app.elements['content-body'].innerHTML.includes('متن انتخابی اول'), 'View must NOT retain first selection');
+        assert.strictEqual(app.rtlApp.getCurrentCleanText().includes('متن انتخابی دوم'), true);
+        assert.strictEqual(app.rtlApp.getCurrentCleanText().includes('متن انتخابی اول'), false);
+
+        // 3. User triggers shortcut with no selection (empty payload)
+        app.emitTauriEvent('new-content', {
+            raw_text: '',
+            html: '',
+            visible_length: 0,
+            is_empty: true,
+            is_html: false,
+        });
+
+        // Must display empty state, NOT the previous selection
+        assert.ok(app.elements['content-body'].innerHTML.includes('empty-state'), 'Empty selection must show empty state');
+        assert.ok(!app.elements['content-body'].innerHTML.includes('متن انتخابی دوم'), 'Must NOT retain second selection on empty capture');
+    });
 });

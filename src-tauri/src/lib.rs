@@ -11,22 +11,34 @@ mod text_engine;
 use text_engine::{process_clipboard_payload, ProcessedContent};
 
 static CURRENT_CONTENT: Mutex<Option<ProcessedContent>> = Mutex::new(None);
+static CURRENT_SHORTCUT: Mutex<String> = Mutex::new(String::new());
 
 #[tauri::command]
 fn get_current_content() -> ProcessedContent {
     let lock = CURRENT_CONTENT.lock().unwrap();
-    lock.clone().unwrap_or_else(|| ProcessedContent {
+    if let Some(content) = lock.clone() {
+        return content;
+    }
+
+    let sc_lock = CURRENT_SHORTCUT.lock().unwrap();
+    let current_sc = if sc_lock.is_empty() {
+        "Ctrl + Alt + F"
+    } else {
+        sc_lock.as_str()
+    };
+
+    ProcessedContent {
         raw_text: String::new(),
-        html: r#"<div class="empty-state" style="text-align: center; padding: 24px 16px;">
+        html: format!(r#"<div class="empty-state" style="text-align: center; padding: 24px 16px;">
             <div style="font-size: 20px; font-weight: bold; margin-bottom: 12px; color: #60a5fa;">برنامه RTL View فعال است ✔</div>
             <p style="color: #cbd5e1; margin-bottom: 12px; font-size: 14px;">متن دلخواه خود را در هر برنامه‌ای انتخاب کنید و کلیدهای میانبر زیر را فشار دهید:</p>
-            <div style="display: inline-block; background: #1e293b; border: 1px solid #475569; border-radius: 8px; padding: 8px 20px; font-size: 18px; font-weight: bold; color: #38bdf8; margin: 8px 0; letter-spacing: 1px;">Ctrl + Alt + F</div>
+            <div id="empty-state-shortcut" style="display: inline-block; background: #1e293b; border: 1px solid #475569; border-radius: 8px; padding: 8px 20px; font-size: 18px; font-weight: bold; color: #38bdf8; margin: 8px 0; letter-spacing: 1px;">{}</div>
             <p style="font-size: 12px; color: #94a3b8; margin-top: 16px;">این پنجره با کلید Esc پنهان می‌شود و در نوار وظیفه کنار ساعت (System Tray) به کار خود ادامه می‌دهد.</p>
-        </div>"#.to_string(),
+        </div>"#, current_sc),
         visible_length: 0,
         is_empty: false,
         is_html: false,
-    })
+    }
 }
 
 #[tauri::command]
@@ -104,6 +116,19 @@ fn update_global_shortcut(app: AppHandle, shortcut_str: String) -> Result<String
             }
         })
         .map_err(|e| format!("امکان ثبت میانبر در سیستم‌عامل وجود ندارد: {e}"))?;
+
+    {
+        let mut sc_lock = CURRENT_SHORTCUT.lock().unwrap();
+        *sc_lock = shortcut_str.clone();
+    }
+
+    if let Some(tray) = app.tray_by_id("main-tray") {
+        let _ = tray.set_tooltip(Some(format!("RTL View - نمایشگر راست‌چین ({clean})")));
+    }
+
+    if let Some(w) = app.get_webview_window("main") {
+        let _ = w.emit("shortcut-updated", shortcut_str.clone());
+    }
 
     Ok(clean)
 }
@@ -203,7 +228,7 @@ pub fn run() {
             });
 
             // 2. ساخت نوار وظیفه (System Tray) بدون منوی خاکستری پیش‌فرض سیستم‌عامل
-            let mut tray_builder = TrayIconBuilder::new()
+            let mut tray_builder = TrayIconBuilder::with_id("main-tray")
                 .tooltip("RTL View - نمایشگر راست‌چین (Ctrl+Alt+F)")
                 .show_menu_on_left_click(false);
 
