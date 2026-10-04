@@ -1,0 +1,8 @@
+# GitHub Linguist language detection overrides
+# Ignore tests in language stats so only primary app code is counted
+tests/** linguist-vendored=true
+tests/** linguist-detectable=false
+
+# TypeScript & Rust as primary detected languages
+*.ts linguist-detectable=true
+*.rs linguist-detectable=true

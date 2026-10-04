@@ -1,8 +1,11 @@
+import { createRequire } from 'node:module';
+const require = createRequire(import.meta.url);
+
 const test = require('node:test');
 const assert = require('node:assert');
 const fs = require('node:fs');
 const path = require('node:path');
-const { loadVirastar, loadCardExporter, createMockCanvas, loadApp } = require('./helpers/env.js');
+const { loadVirastar, loadCardExporter, createMockCanvas, loadApp } = require('./helpers/env');
 
 test('Adversarial Challenge Suite: BiDi, Extreme Unicode, Tables & Canvas Wrapping', async (t) => {
     const virastar = loadVirastar();

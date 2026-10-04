@@ -1,6 +1,9 @@
+import { createRequire } from 'node:module';
+const require = createRequire(import.meta.url);
+
 const test = require('node:test');
 const assert = require('node:assert');
-const { loadVirastar } = require('../helpers/env.js');
+const { loadVirastar } = require('../helpers/env');
 
 test('Tier 2: Boundary & Corner Cases - Extreme Unicode & ZWNJ Sequences', async (t) => {
     const virastar = loadVirastar();

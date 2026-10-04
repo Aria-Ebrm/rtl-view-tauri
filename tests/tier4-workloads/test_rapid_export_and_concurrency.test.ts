@@ -1,6 +1,9 @@
+import { createRequire } from 'node:module';
+const require = createRequire(import.meta.url);
+
 const test = require('node:test');
 const assert = require('node:assert');
-const { loadApp, loadCardExporter, createMockCanvas } = require('../helpers/env.js');
+const { loadApp, loadCardExporter, createMockCanvas } = require('../helpers/env');
 
 test('Tier 4: Real-World Workload Scenarios - Rapid Export & Concurrency', async (t) => {
     const { CardExporter } = loadCardExporter();

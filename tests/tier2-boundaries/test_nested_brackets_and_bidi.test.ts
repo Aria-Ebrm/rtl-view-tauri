@@ -1,6 +1,9 @@
+import { createRequire } from 'node:module';
+const require = createRequire(import.meta.url);
+
 const test = require('node:test');
 const assert = require('node:assert');
-const { loadApp, loadVirastar, loadCardExporter, createMockCanvas } = require('../helpers/env.js');
+const { loadApp, loadVirastar, loadCardExporter, createMockCanvas } = require('../helpers/env');
 
 test('Tier 2: Boundary & Corner Cases - Nested Brackets & BiDi Ordering', async (t) => {
     const virastar = loadVirastar();

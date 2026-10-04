@@ -1,6 +1,9 @@
+import { createRequire } from 'node:module';
+const require = createRequire(import.meta.url);
+
 const test = require('node:test');
 const assert = require('node:assert');
-const { loadApp } = require('../helpers/env.js');
+const { loadApp } = require('../helpers/env');
 
 test('Tier 1: Feature Coverage - Token & URL Protection in Pipeline', async (t) => {
     await t.test('4.1 Protects URLs from Persian digit conversion and question mark corruption', () => {

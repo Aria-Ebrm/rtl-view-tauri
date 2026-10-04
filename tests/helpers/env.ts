@@ -3,14 +3,18 @@
  * Zero-dependency sandbox and mock harness for Node.js native test runner
  */
 
+import { createRequire } from 'node:module';
+const require = createRequire(import.meta.url);
+const __dirname = import.meta.dirname;
+
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 
 const ROOT_DIR = path.resolve(__dirname, '../..');
-const VIRASTAR_SRC = path.join(ROOT_DIR, 'src/virastar.js');
-const CARD_EXPORTER_SRC = path.join(ROOT_DIR, 'src/card-exporter.js');
-const APP_SRC = path.join(ROOT_DIR, 'src/app.js');
+const VIRASTAR_SRC = path.join(ROOT_DIR, 'src/virastar.ts');
+const CARD_EXPORTER_SRC = path.join(ROOT_DIR, 'src/card-exporter.ts');
+const APP_SRC = path.join(ROOT_DIR, 'src/app.ts');
 
 function readSource(filePath) {
     const tsPath = filePath.replace(/\.js$/, '.ts');
@@ -524,6 +528,14 @@ function loadApp(overrides = {}) {
 }
 
 module.exports = {
+    loadVirastar,
+    loadCardExporter,
+    createMockCanvas,
+    createMockElement,
+    loadApp,
+};
+
+export {
     loadVirastar,
     loadCardExporter,
     createMockCanvas,

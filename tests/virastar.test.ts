@@ -2,6 +2,8 @@
  * Automated Unit Tests for Virastar Typography & Persian Rules Engine
  * Uses Node.js native test runner (node:test)
  */
+import { createRequire } from 'node:module';
+const require = createRequire(import.meta.url);
 
 const { describe, it } = require('node:test');
 const assert = require('node:assert/strict');
@@ -10,10 +12,10 @@ const path = require('node:path');
 const fs = require('node:fs');
 
 // Test both direct require (CJS/UMD export) and sandbox loading
-const { loadVirastar } = require('./helpers/env.js');
+const { loadVirastar } = require('./helpers/env');
 let Virastar;
 try {
-    Virastar = require('../src/virastar.js');
+    Virastar = require('../src/virastar');
 } catch (_) {
     Virastar = loadVirastar();
 }

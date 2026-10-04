@@ -13,8 +13,8 @@ export default defineConfig({
     sourcemap: !!process.env.TAURI_ENV_DEBUG,
     rollupOptions: {
       input: {
-        main: resolve(__dirname, 'index.html'),
-        tray: resolve(__dirname, 'tray.html'),
+        main: resolve(import.meta.dirname, 'index.html'),
+        tray: resolve(import.meta.dirname, 'tray.html'),
       },
     },
     outDir: 'dist',

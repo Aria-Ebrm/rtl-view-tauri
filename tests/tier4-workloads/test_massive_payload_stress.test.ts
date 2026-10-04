@@ -1,6 +1,9 @@
+import { createRequire } from 'node:module';
+const require = createRequire(import.meta.url);
+
 const test = require('node:test');
 const assert = require('node:assert');
-const { loadApp, loadVirastar } = require('../helpers/env.js');
+const { loadApp, loadVirastar } = require('../helpers/env');
 
 test('Tier 4: Real-World Workload Scenarios - Massive Payload Stress', async (t) => {
     const virastar = loadVirastar();

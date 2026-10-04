@@ -1,3 +1,7 @@
+import { createRequire } from 'node:module';
+const require = createRequire(import.meta.url);
+const __dirname = import.meta.dirname;
+
 const test = require('node:test');
 const assert = require('node:assert');
 const fs = require('node:fs');

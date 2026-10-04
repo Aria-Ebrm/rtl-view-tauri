@@ -1,6 +1,9 @@
+import { createRequire } from 'node:module';
+const require = createRequire(import.meta.url);
+
 const test = require('node:test');
 const assert = require('node:assert');
-const { loadApp } = require('../helpers/env.js');
+const { loadApp } = require('../helpers/env');
 
 test('Tier 4: Real-World Workload Scenarios - Tech Jargon & Tables', async (t) => {
     await t.test('4.2.1 Complex Git commit log with SHA256, SemVer, and mixed BiDi', () => {

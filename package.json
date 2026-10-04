@@ -1,6 +1,7 @@
 {
   "name": "rtl-view",
-  "version": "2.3.7",
+  "version": "2.3.8",
+  "type": "module",
   "description": "Ultra-lightweight, blazing-fast, and secure cross-platform RTL popup viewer built with Rust & Tauri v2",
   "main": "index.html",
   "scripts": {
@@ -8,7 +9,7 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "tauri": "tauri",
-    "test": "node --test tests/**/*.test.js"
+    "test": "node --import tsx --test tests/**/*.test.ts"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.0.0",

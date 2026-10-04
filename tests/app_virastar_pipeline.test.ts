@@ -1,3 +1,6 @@
+import { createRequire } from 'node:module';
+const require = createRequire(import.meta.url);
+
 /**
  * Automated Unit & Stress Tests for app.js Virastar Pipeline & DOM Optimization
  * Uses Node.js native test runner (node:test)
@@ -5,7 +8,7 @@
 
 const { describe, it } = require('node:test');
 const assert = require('node:assert/strict');
-const { loadApp } = require('./helpers/env.js');
+const { loadApp } = require('./helpers/env');
 
 describe('App Pipeline - URL Protection', () => {
     it('should protect URL ports and query parameters from Persian digit mutation', () => {

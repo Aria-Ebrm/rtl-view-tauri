@@ -1,6 +1,9 @@
+import { createRequire } from 'node:module';
+const require = createRequire(import.meta.url);
+
 const test = require('node:test');
 const assert = require('node:assert');
-const { loadApp } = require('../helpers/env.js');
+const { loadApp } = require('../helpers/env');
 
 test('Tier 1: Feature Coverage - App State, UI & OS Events', async (t) => {
     await t.test('6.1 Initial empty state rendering', () => {

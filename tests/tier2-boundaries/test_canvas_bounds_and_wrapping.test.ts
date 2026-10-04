@@ -1,6 +1,9 @@
+import { createRequire } from 'node:module';
+const require = createRequire(import.meta.url);
+
 const test = require('node:test');
 const assert = require('node:assert');
-const { loadCardExporter, createMockCanvas } = require('../helpers/env.js');
+const { loadCardExporter, createMockCanvas } = require('../helpers/env');
 
 test('Tier 2: Boundary & Corner Cases - Canvas Dimension Bounds & Text Wrapping', async (t) => {
     const { CardExporter } = loadCardExporter();

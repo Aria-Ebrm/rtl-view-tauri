@@ -13,17 +13,40 @@
 *نمایشگر فوق‌سریع و بومی متون راست‌چین و ویراستار زبان فارسی*
 
 <p align="center">
+  <a href="https://github.com/Aria-Ebrm/rtl-view-tauri/releases/latest">
+    <img src="https://img.shields.io/badge/Download-Windows%20Setup%20(.exe)-0070f3?style=for-the-badge&logo=windows&logoColor=white" alt="Download Windows">
+  </a>
+  <a href="https://github.com/Aria-Ebrm/rtl-view-tauri/releases/latest">
+    <img src="https://img.shields.io/badge/Download-macOS%20(.dmg)-171717?style=for-the-badge&logo=apple&logoColor=white" alt="Download macOS">
+  </a>
+  <a href="https://github.com/Aria-Ebrm/rtl-view-tauri/releases/latest">
+    <img src="https://img.shields.io/badge/Download-Linux%20(.AppImage)-FCC624?style=for-the-badge&logo=linux&logoColor=black" alt="Download Linux">
+  </a>
+</p>
+
+<p align="center">
   <a href="https://github.com/Aria-Ebrm/rtl-view-tauri/actions/workflows/release.yml">
     <img src="https://img.shields.io/github/actions/workflow/status/Aria-Ebrm/rtl-view-tauri/release.yml?style=flat-square&logo=github&label=Release%20CI" alt="CI Status">
   </a>
   <a href="https://github.com/Aria-Ebrm/rtl-view-tauri/releases/latest">
-    <img src="https://img.shields.io/github/v/release/Aria-Ebrm/rtl-view-tauri?style=flat-square&color=0070f3&label=Release&logo=github" alt="Latest Release">
+    <img src="https://img.shields.io/badge/Release-v2.3.8-0070f3?style=flat-square&logo=github" alt="Latest Release">
   </a>
   <a href="https://github.com/Aria-Ebrm/rtl-view-tauri/releases">
     <img src="https://img.shields.io/github/downloads/Aria-Ebrm/rtl-view-tauri/total?style=flat-square&color=171717&label=Downloads" alt="Downloads">
   </a>
-  <img src="https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-171717?style=flat-square" alt="Platforms">
-  <img src="https://img.shields.io/badge/Core-Rust%20%7C%20Tauri%20v2-171717?style=flat-square&logo=rust&logoColor=white" alt="Rust Core">
+  <img src="https://img.shields.io/badge/Tests-182%20Passing-success?style=flat-square&logo=checkmarx" alt="182 Automated Tests Passing">
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/TypeScript-5.x-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript">
+  <img src="https://img.shields.io/badge/Vite-8.x-646CFF?style=flat-square&logo=vite&logoColor=white" alt="Vite">
+  <img src="https://img.shields.io/badge/Tauri-v2-24C8DB?style=flat-square&logo=tauri&logoColor=white" alt="Tauri v2">
+  <img src="https://img.shields.io/badge/Rust-1.80+-DEA584?style=flat-square&logo=rust&logoColor=white" alt="Rust">
+  <img src="https://img.shields.io/badge/Design-Geist%20UI-000000?style=flat-square&logo=vercel&logoColor=white" alt="Geist UI">
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Cold%20Start-%3C5ms-00dfd8?style=flat-square" alt="Cold Start">
   <img src="https://img.shields.io/badge/Memory-~28MB-00dfd8?style=flat-square" alt="Memory">
   <img src="https://img.shields.io/badge/License-MIT-171717?style=flat-square" alt="License">
 </p>
@@ -43,17 +66,17 @@
 ---
 
 ### `01 // DOWNLOAD MATRIX`
-#### دریافت مستقیم آخرین نسخه پایدار (v2.3.5)
+#### دریافت مستقیم آخرین نسخه پایدار (v2.3.8)
 
 تمامی باینری‌ها توسط خط لوله خودکار GitHub Actions با فلگ‌های بهینه‌سازی `opt-level = 3` و `lto = true` کامپایل شده‌اند:
 
 | سیستم‌عامل | معماری | فرمت پکیج | حجم تقریبی | لینک دانلود مستقیم |
 | :--- | :--- | :--- | :--- | :--- |
-| **Windows** | x64 (64-bit) | `.exe` (NSIS Setup خودکار سبک) | ~۱.۸ MB | [**دانلود نصاب خودکار Setup.exe**](https://github.com/Aria-Ebrm/rtl-view-tauri/releases/download/v2.3.5/RTL.View_2.3.5_x64-setup.exe) |
-| **Windows** | x64 (64-bit) | `.msi` (Windows Installer سازمانی) | ~۲.۶ MB | [دانلود پکیج سازمانی MSI](https://github.com/Aria-Ebrm/rtl-view-tauri/releases/download/v2.3.5/RTL.View_2.3.5_x64_en-US.msi) |
-| **macOS** | Universal (Intel & Apple Silicon M1-M4) | `.dmg` | ~۴.۹ MB | [دانلود دیسک ایمیج DMG](https://github.com/Aria-Ebrm/rtl-view-tauri/releases/download/v2.3.5/RTL.View_2.3.5_universal.dmg) |
-| **Linux** | x86_64 | `.deb` (Debian / Ubuntu / Mint) | ~۳.۱ MB | [دانلود پکیج دبیان DEB](https://github.com/Aria-Ebrm/rtl-view-tauri/releases/download/v2.3.5/RTL.View_2.3.5_amd64.deb) |
-| **Linux** | x86_64 | `.AppImage` (پرتابل مستقل) | ~۷۸ MB | [دانلود نسخه مستقل AppImage](https://github.com/Aria-Ebrm/rtl-view-tauri/releases/download/v2.3.5/RTL.View_2.3.5_amd64.AppImage) |
+| **Windows** | x64 (64-bit) | `.exe` (NSIS Setup خودکار سبک) | ~۱.۸ MB | [**دانلود نصاب خودکار Setup.exe**](https://github.com/Aria-Ebrm/rtl-view-tauri/releases/download/v2.3.8/RTL.View_2.3.8_x64-setup.exe) |
+| **Windows** | x64 (64-bit) | `.msi` (Windows Installer سازمانی) | ~۲.۶ MB | [دانلود پکیج سازمانی MSI](https://github.com/Aria-Ebrm/rtl-view-tauri/releases/download/v2.3.8/RTL.View_2.3.8_x64_en-US.msi) |
+| **macOS** | Universal (Intel & Apple Silicon M1-M4) | `.dmg` | ~۴.۹ MB | [دانلود دیسک ایمیج DMG](https://github.com/Aria-Ebrm/rtl-view-tauri/releases/download/v2.3.8/RTL.View_2.3.8_universal.dmg) |
+| **Linux** | x86_64 | `.deb` (Debian / Ubuntu / Mint) | ~۳.۱ MB | [دانلود پکیج دبیان DEB](https://github.com/Aria-Ebrm/rtl-view-tauri/releases/download/v2.3.8/RTL.View_2.3.8_amd64.deb) |
+| **Linux** | x86_64 | `.AppImage` (پرتابل مستقل) | ~۷۸ MB | [دانلود نسخه مستقل AppImage](https://github.com/Aria-Ebrm/rtl-view-tauri/releases/download/v2.3.8/RTL.View_2.3.8_amd64.AppImage) |
 
 > برای مشاهده چک‌سام‌های امنیتی SHA-256 و سایر فرمت‌ها، به [صفحه انتشارهای گیت‌هاب (Releases)](https://github.com/Aria-Ebrm/rtl-view-tauri/releases/latest) مراجعه کنید.
 

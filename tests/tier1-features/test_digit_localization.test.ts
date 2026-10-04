@@ -1,6 +1,9 @@
+import { createRequire } from 'node:module';
+const require = createRequire(import.meta.url);
+
 const test = require('node:test');
 const assert = require('node:assert');
-const { loadVirastar } = require('../helpers/env.js');
+const { loadVirastar } = require('../helpers/env');
 
 test('Tier 1: Feature Coverage - Digit Localization & Conversion', async (t) => {
     const virastar = loadVirastar();

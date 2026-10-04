@@ -1,8 +1,12 @@
+import { createRequire } from 'node:module';
+const require = createRequire(import.meta.url);
+const __dirname = import.meta.dirname;
+
 const test = require('node:test');
 const assert = require('node:assert');
 const fs = require('node:fs');
 const path = require('node:path');
-const { loadApp, loadVirastar, loadCardExporter, createMockCanvas } = require('../helpers/env.js');
+const { loadApp, loadVirastar, loadCardExporter, createMockCanvas } = require('../helpers/env');
 
 test('Tier 5: Adversarial Stress & Massive Payload Battery', async (t) => {
     const virastar = loadVirastar();
