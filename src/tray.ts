@@ -1,4 +1,8 @@
 // ==============================================================================
+// RTL View - Tray Flyout Controller (Geist Design System - TypeScript)
+// ==============================================================================
+
+// ==============================================================================
 // RTL View - Tray Flyout Controller (Geist Design System)
 // ==============================================================================
 
@@ -15,7 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnSettings = document.getElementById('btn-tray-settings');
     const btnRepair = document.getElementById('btn-tray-repair');
     const btnQuit = document.getElementById('btn-tray-quit');
-    const switchActive = document.getElementById('tray-switch-active');
+    const switchActive = document.getElementById('tray-switch-active') as HTMLInputElement | null;
 
     function invokeTauri(cmd, args = {}) {
         if (window.__TAURI__ && window.__TAURI__.core) {
@@ -68,3 +72,5 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+export {};

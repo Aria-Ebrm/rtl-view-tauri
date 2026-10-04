@@ -1,9 +1,18 @@
-// تعامل امن با Tauri v2 API و مدیریت امکانات هوشمند RTL View
+// ==============================================================================
+// RTL View - Main Application Controller (TypeScript + Vite)
+// ==============================================================================
 
-(function() {
-    'use strict';
+import { Virastar } from './virastar';
+import { CardExporter } from './card-exporter';
+import type { ToolbarVisibilityState } from './types';
 
-    // المان‌های DOM با محافظت از عدم وجود document در محیط‌های تست Node.js
+// Ensure globally accessible
+if (typeof window !== 'undefined') {
+    (window as any).Virastar = Virastar;
+    (window as any).CardExporter = CardExporter;
+}
+
+// المان‌های DOM با محافظت از عدم وجود document در محیط‌های تست Node.js
     const doc = typeof document !== 'undefined' ? document : null;
     const contentBody = doc ? doc.getElementById('content-body') : null;
     const charCount = doc ? doc.getElementById('char-count') : null;
@@ -127,7 +136,7 @@
             if (el && el.classList && typeof el.classList.toggle === 'function') {
                 el.classList.toggle('toolbar-item-hidden', !isVisible);
             }
-            const toggleInput = (typeof doc.querySelector === 'function') ? doc.querySelector(`input[data-target="${id}"]`) : null;
+            const toggleInput = (typeof doc.querySelector === 'function') ? (doc.querySelector(`input[data-target="${id}"]`) as any) : null;
             if (toggleInput) {
                 toggleInput.checked = isVisible;
             }
@@ -187,7 +196,7 @@
             doc.documentElement.setAttribute('data-theme', theme);
         }
         if (themeSelect) {
-            themeSelect.value = theme;
+            (themeSelect as any).value = theme;
         }
         if (doc && typeof doc.querySelectorAll === 'function') {
             const themeButtons = doc.querySelectorAll('.theme-opt-btn');
@@ -325,7 +334,7 @@
             isRtl = detectDirection(text) === 'rtl';
         }
 
-        const tokens = [];
+        const tokens: any[] = [];
 
         // ۱. کدهای درون‌خطی
         let working = text.replace(/`([^`\n]+)`/g, (m, inner) => {
@@ -891,7 +900,7 @@
     }
 
     // باز و بسته کردن منوی همبرگری
-    function toggleHamburgerMenu(forceState) {
+    function toggleHamburgerMenu(forceState?: boolean) {
         if (!hamburgerDropdown) return;
         if (typeof forceState === 'boolean') {
             isHamburgerOpen = forceState;
@@ -926,7 +935,7 @@
         isTraySettingsOpen = true;
         if (traySettingsModal) {
             showModal(traySettingsModal);
-            if (trayToggleAlwaysTop) trayToggleAlwaysTop.checked = isPinned;
+            if (trayToggleAlwaysTop) (trayToggleAlwaysTop as HTMLInputElement).checked = isPinned;
         }
     }
 
@@ -939,7 +948,7 @@
     function openShortcutModal() {
         toggleHamburgerMenu(false);
         isShortcutModalOpen = true;
-        if (inputCustomShortcut) inputCustomShortcut.value = formatShortcutDisplay(currentShortcut);
+        if (inputCustomShortcut) (inputCustomShortcut as HTMLInputElement).value = formatShortcutDisplay(currentShortcut);
         showModal(shortcutModal);
     }
 
@@ -982,7 +991,7 @@
                 btnPin.title = isPinned ? 'پنجره سنجاق شده است (همیشه رو)' : 'سنجاق کردن پنجره در بالا (Always on Top)';
             }
             if (trayToggleAlwaysTop) {
-                trayToggleAlwaysTop.checked = isPinned;
+                (trayToggleAlwaysTop as HTMLInputElement).checked = isPinned;
             }
         } catch (err) {
             console.error('Failed to toggle pin:', err);
@@ -1029,7 +1038,7 @@
     // جابه‌جایی روان و مطمئن پنجره با کشیدن نوار عنوان (Window Dragging)
     if (windowTitlebar) {
         windowTitlebar.addEventListener('mousedown', async (e) => {
-            if (e.target.closest('button, a, input, select, textarea, .hamburger-dropdown')) {
+            if ((e.target as HTMLElement)?.closest('button, a, input, select, textarea, .hamburger-dropdown')) {
                 return;
             }
             if (e.button === 0) {
@@ -1089,7 +1098,7 @@
     if (doc) {
         doc.addEventListener('click', (e) => {
             if (hamburgerDropdown && isHamburgerOpen) {
-                if (!hamburgerDropdown.contains(e.target) && e.target !== btnHamburger && (!btnHamburger || !btnHamburger.contains(e.target))) {
+                if (!hamburgerDropdown.contains(e.target as Node) && e.target !== btnHamburger && (!btnHamburger || !btnHamburger.contains(e.target as Node))) {
                     toggleHamburgerMenu(false);
                 }
             }
@@ -1117,9 +1126,9 @@
         const toggleInputs = doc.querySelectorAll('.toolbar-toggles-list input[type="checkbox"]');
         toggleInputs.forEach(input => {
             input.addEventListener('change', (e) => {
-                const targetId = e.target.getAttribute('data-target');
+                const targetId = (e.target as HTMLElement)?.getAttribute('data-target');
                 if (targetId) {
-                    setToolbarItemVisibility(targetId, e.target.checked);
+                    setToolbarItemVisibility(targetId, (e.target as HTMLInputElement)?.checked);
                 }
             });
         });
@@ -1144,7 +1153,7 @@
     // تغییر تم از طریق سلکتور (جهت سازگاری کامل)
     if (themeSelect) {
         themeSelect.addEventListener('change', (e) => {
-            const val = (e && e.target && e.target.value) ? e.target.value : (themeSelect.value || currentTheme);
+            const val = (e && e.target && (e.target as HTMLInputElement)?.value) ? (e.target as HTMLInputElement)?.value : ((themeSelect as any).value || currentTheme);
             setTheme(val);
             if (cardModal && cardModal.classList.contains('open')) {
                 renderActiveCard();
@@ -1170,7 +1179,7 @@
             if (typeof window !== 'undefined' && window.__TAURI__ && window.__TAURI__.core) {
                 try {
                     const enabled = await window.__TAURI__.core.invoke('toggle_autostart_cmd');
-                    trayToggleAutostart.checked = enabled;
+                    (trayToggleAutostart as HTMLInputElement).checked = enabled;
                 } catch (e) {
                     console.error('Failed to toggle autostart:', e);
                 }
@@ -1188,7 +1197,7 @@
             btn.addEventListener('click', () => {
                 const sc = btn.getAttribute('data-sc');
                 if (sc && inputCustomShortcut) {
-                    inputCustomShortcut.value = formatShortcutDisplay(sc);
+                    (inputCustomShortcut as HTMLInputElement).value = formatShortcutDisplay(sc);
                 }
             });
         });
@@ -1196,8 +1205,8 @@
 
     if (btnSaveShortcut) {
         btnSaveShortcut.addEventListener('click', async () => {
-            if (inputCustomShortcut && inputCustomShortcut.value.trim()) {
-                const newSc = inputCustomShortcut.value.trim();
+            if (inputCustomShortcut && (inputCustomShortcut as HTMLInputElement).value.trim()) {
+                const newSc = (inputCustomShortcut as HTMLInputElement).value.trim();
                 const cleanSc = newSc.replace(/\s+/g, '');
                 try {
                     if (typeof window !== 'undefined' && window.__TAURI__ && window.__TAURI__.core) {
@@ -1452,26 +1461,29 @@
         });
     }
 
-    const RtlApp = {
-        processWithVirastar,
-        formatInline,
-        formatTextSegment,
-        escapeHtml,
-        isTableLine,
-        updateStats,
-        renderContent,
-        updateView,
-        setTheme,
-        setToolbarItemVisibility,
-        getToolbarVisibility: () => Object.assign({}, toolbarVisibility),
-        getCurrentCleanText: () => currentCleanText,
-    };
+export const RtlApp = {
+    processWithVirastar,
+    formatInline,
+    formatTextSegment,
+    escapeHtml,
+    isTableLine,
+    updateStats,
+    renderContent,
+    updateView,
+    setTheme,
+    setToolbarItemVisibility,
+    getToolbarVisibility: () => Object.assign({}, toolbarVisibility),
+    getCurrentCleanText: () => currentCleanText,
+};
 
-    if (typeof window !== 'undefined') {
-        window.RtlApp = RtlApp;
-    }
-    if (typeof module !== 'undefined' && module.exports) {
-        module.exports = RtlApp;
-    }
+if (typeof window !== 'undefined') {
+    (window as any).RtlApp = RtlApp;
+}
+if (typeof globalThis !== 'undefined') {
+    (globalThis as any).RtlApp = RtlApp;
+}
+if (typeof (globalThis as any).module !== 'undefined' && (globalThis as any).module.exports) {
+    (globalThis as any).module.exports = RtlApp;
+}
 
-})();
+export default RtlApp;

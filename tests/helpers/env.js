@@ -12,17 +12,43 @@ const VIRASTAR_SRC = path.join(ROOT_DIR, 'src/virastar.js');
 const CARD_EXPORTER_SRC = path.join(ROOT_DIR, 'src/card-exporter.js');
 const APP_SRC = path.join(ROOT_DIR, 'src/app.js');
 
+function readSource(filePath) {
+    const tsPath = filePath.replace(/\.js$/, '.ts');
+    if (fs.existsSync(tsPath)) {
+        const raw = fs.readFileSync(tsPath, 'utf8');
+        try {
+            const esbuild = require('esbuild');
+            return esbuild.transformSync(raw, { loader: 'ts', format: 'cjs' }).code;
+        } catch (_) {
+            return raw;
+        }
+    }
+    if (fs.existsSync(filePath)) {
+        return fs.readFileSync(filePath, 'utf8');
+    }
+    return '';
+}
+
 /**
  * Load Virastar module into a fresh sandbox
  */
 function loadVirastar() {
-    const code = fs.readFileSync(VIRASTAR_SRC, 'utf8');
+    const code = readSource(VIRASTAR_SRC);
+    const mod = { exports: {} };
     const sandbox = {
         window: {},
+        module: mod,
+        exports: mod.exports,
+        globalThis: null,
     };
+    sandbox.globalThis = sandbox;
     vm.createContext(sandbox);
     vm.runInContext(code, sandbox);
-    return sandbox.window.Virastar;
+    const v = sandbox.window.Virastar || mod.exports.Virastar || mod.exports;
+    if (sandbox.window && !sandbox.window.Virastar) {
+        sandbox.window.Virastar = v;
+    }
+    return v;
 }
 
 /**
@@ -152,8 +178,9 @@ function createMockCanvas(initialWidth = 832, initialHeight = 500) {
  * Load CardExporter module into a sandbox with canvas and document support
  */
 function loadCardExporter() {
-    const code = fs.readFileSync(CARD_EXPORTER_SRC, 'utf8');
+    const code = readSource(CARD_EXPORTER_SRC);
     const mockCanvas = createMockCanvas();
+    const mod = { exports: {} };
     const sandbox = {
         window: {
             document: {
@@ -177,13 +204,21 @@ function loadCardExporter() {
                 },
             },
         },
+        module: mod,
+        exports: mod.exports,
+        globalThis: null,
     };
     sandbox.document = sandbox.window.document;
     sandbox.navigator = sandbox.window.navigator;
+    sandbox.globalThis = sandbox;
     vm.createContext(sandbox);
     vm.runInContext(code, sandbox);
+    const ce = sandbox.window.CardExporter || mod.exports.CardExporter || mod.exports;
+    if (sandbox.window && !sandbox.window.CardExporter) {
+        sandbox.window.CardExporter = ce;
+    }
     return {
-        CardExporter: sandbox.window.CardExporter,
+        CardExporter: ce,
         mockCanvas,
         sandbox,
     };
@@ -290,7 +325,7 @@ function createMockElement(id = '', tagName = 'div') {
  * Load app.js into a fully mocked browser and Tauri environment
  */
 function loadApp(overrides = {}) {
-    const code = fs.readFileSync(APP_SRC, 'utf8');
+    const code = readSource(APP_SRC);
     const virastar = loadVirastar();
     const mockCanvas = createMockCanvas();
 
@@ -427,10 +462,29 @@ function loadApp(overrides = {}) {
         alert: mockWin.alert,
         setTimeout: setTimeout,
         clearTimeout: clearTimeout,
+        require: (modName) => {
+            if (modName === './virastar' || modName.endsWith('virastar')) {
+                return { Virastar: virastar, default: virastar };
+            }
+            if (modName === './card-exporter' || modName.endsWith('card-exporter')) {
+                const ce = loadCardExporter();
+                return { CardExporter: ce.CardExporter, default: ce.CardExporter };
+            }
+            return require(modName);
+        },
+        module: { exports: {} },
+        exports: {},
+        globalThis: null,
     };
+    sandbox.exports = sandbox.module.exports;
+    sandbox.globalThis = sandbox;
 
     vm.createContext(sandbox);
     vm.runInContext(code, sandbox);
+
+    if (sandbox.window && !sandbox.window.RtlApp) {
+        sandbox.window.RtlApp = sandbox.module.exports.RtlApp || sandbox.module.exports;
+    }
 
     return {
         elements,

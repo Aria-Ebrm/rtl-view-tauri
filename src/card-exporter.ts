@@ -1,16 +1,13 @@
 /**
- * Card Exporter for RTL View - Version 2.3.5
+ * Card Exporter for RTL View - TypeScript Version
  * Generates beautiful, high-resolution (Retina 2x) social media cards
  * formatted with Vazirmatn font, theme palettes, inline code badges,
  * and adaptive OS window decorations (Windows 11 or macOS).
  */
 
-(function(globalScope) {
-    'use strict';
+import type { ThemePalette, BlockToken, LineToken, CardExporterOptions } from './types';
 
-    const root = globalScope || (typeof window !== 'undefined' ? window : (typeof globalThis !== 'undefined' ? globalThis : this));
-
-    const THEME_PALETTES = {
+const THEME_PALETTES = {
         zinc: {
             bgOuter1: '#18181b',
             bgOuter2: '#09090b',
@@ -143,7 +140,7 @@
      */
     function parseLineTokens(htmlLine) {
         if (!htmlLine) return [];
-        const tokens = [];
+        const tokens: any[] = [];
         // شناسایی تگ‌های code
         const codeRegex = /<code[^>]*>([\s\S]*?)<\/code>/gi;
         let lastIndex = 0;
@@ -197,7 +194,7 @@
      * استخراج بلوک‌ها از منبع HTML پنجره با حذف تگ‌های زائد
      */
     function extractBlocks(htmlSource) {
-        const blocks = [];
+        const blocks: any[] = [];
         if (!htmlSource) return blocks;
 
         let container;
@@ -222,8 +219,8 @@
             return blocks;
         }
 
-        for (const el of children) {
-            if (el.classList && (el.classList.contains('table-block') || el.classList.contains('code-block'))) {
+        for (const el of (children as any[])) {
+            if (el && el.classList && (el.classList.contains('table-block') || el.classList.contains('code-block'))) {
                 blocks.push({
                     type: 'table',
                     text: el.innerText || el.textContent || ''
@@ -317,7 +314,7 @@
         }
 
         const subItems = [];
-        const chars = Array.from(item.text);
+        const chars: string[] = Array.from(String(item.text || ''));
         let curStr = '';
 
         for (let i = 0; i < chars.length; i++) {
@@ -391,7 +388,7 @@
         ctx.font = textFont;
         const spaceWidth = ctx.measureText(' ').width;
 
-        const wrappedBlocks = [];
+        const wrappedBlocks: any[] = [];
         let accumulatedContentHeight = 0;
         let isTruncated = false;
 
@@ -433,8 +430,8 @@
             }
 
             // بلوک متنی با آیتم‌ها
-            const lines = [];
-            let currentLine = [];
+            const lines: any[] = [];
+            let currentLine: any[] = [];
             let currentLineWidth = 0;
 
             // تفکیک توکن‌های بیش‌از‌حد عریض
@@ -817,8 +814,8 @@
         const canvas = document.getElementById('card-canvas');
         const contentBody = document.getElementById('content-body');
         if (!canvas || !contentBody) return;
-        const theme = (typeof currentTheme !== 'undefined' ? currentTheme : 'zinc');
-        const style = (typeof currentWindowStyle !== 'undefined' ? currentWindowStyle : 'auto');
+        const theme = (typeof (window as any).currentTheme !== 'undefined' ? (window as any).currentTheme : 'zinc');
+        const style = (typeof (window as any).currentWindowStyle !== 'undefined' ? (window as any).currentWindowStyle : 'auto');
         return await renderCard(canvas, contentBody.innerHTML, theme, style);
     }
 
@@ -865,27 +862,27 @@
         link.href = '';
     }
 
-    const CardExporter = {
-        renderCard,
-        renderActiveCard,
-        copyToClipboard,
-        downloadImage,
-        extractBlocks,
-        parseLineTokens,
-        THEME_PALETTES,
-        hasPersian,
-        getBaseDirection,
-        isRtlLine
-    };
+export const CardExporter = {
+    renderCard,
+    renderActiveCard,
+    copyToClipboard,
+    downloadImage,
+    extractBlocks,
+    parseLineTokens,
+    THEME_PALETTES,
+    hasPersian,
+    getBaseDirection,
+    isRtlLine
+};
 
-    if (typeof window !== 'undefined') {
-        window.CardExporter = CardExporter;
-    }
-    if (typeof root !== 'undefined') {
-        root.CardExporter = CardExporter;
-    }
-    if (typeof module !== 'undefined' && module.exports) {
-        module.exports = { CardExporter, ...CardExporter };
-    }
+if (typeof window !== 'undefined') {
+    (window as any).CardExporter = CardExporter;
+}
+if (typeof globalThis !== 'undefined') {
+    (globalThis as any).CardExporter = CardExporter;
+}
+if (typeof (globalThis as any).module !== 'undefined' && (globalThis as any).module.exports) {
+    (globalThis as any).module.exports = { CardExporter, ...CardExporter };
+}
 
-})(typeof window !== 'undefined' ? window : (typeof globalThis !== 'undefined' ? globalThis : this));
+export default CardExporter;

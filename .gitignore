@@ -1,6 +1,7 @@
-# Node dependencies
+# Node dependencies & build artifacts
 node_modules/
 package-lock.json
+dist/
 
 # Rust target / build artifacts
 src-tauri/target/

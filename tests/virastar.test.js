@@ -7,9 +7,16 @@ const { describe, it } = require('node:test');
 const assert = require('node:assert/strict');
 const path = require('node:path');
 
+const fs = require('node:fs');
+
 // Test both direct require (CJS/UMD export) and sandbox loading
-const Virastar = require('../src/virastar.js');
 const { loadVirastar } = require('./helpers/env.js');
+let Virastar;
+try {
+    Virastar = require('../src/virastar.js');
+} catch (_) {
+    Virastar = loadVirastar();
+}
 
 describe('Virastar Engine - Module & Export', () => {
     it('should export Virastar via CommonJS require', () => {
