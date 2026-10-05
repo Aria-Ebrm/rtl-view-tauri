@@ -106,7 +106,7 @@ if (typeof window !== 'undefined') {
     let currentFontSize = parseFloat(storage.getItem('rtl_font_size')) || 14.5;
     let currentWindowStyle = storage.getItem('rtl_window_style') || (typeof navigator !== 'undefined' && /Macintosh|Mac OS X|iPhone|iPad/.test(navigator.userAgent) ? 'mac' : 'windows');
     let currentShortcut = storage.getItem('rtl_shortcut') || 'Ctrl + Alt + F';
-    let isPinned = false;
+    let isPinned = storage.getItem('rtl_always_on_top') === 'true';
 
     // تنظیمات نمایش دکمه‌های نوار ابزار
     const DEFAULT_TOOLBAR_VIS = {
@@ -930,12 +930,26 @@ if (typeof window !== 'undefined') {
     }
 
     // باز و بسته کردن مدال تنظیمات ترِی
-    function openTraySettingsModal() {
+    async function openTraySettingsModal() {
         toggleHamburgerMenu(false);
         isTraySettingsOpen = true;
         if (traySettingsModal) {
             showModal(traySettingsModal);
             if (trayToggleAlwaysTop) (trayToggleAlwaysTop as HTMLInputElement).checked = isPinned;
+            if (trayToggleAutostart) {
+                if (typeof window !== 'undefined' && window.__TAURI__ && window.__TAURI__.core) {
+                    try {
+                        const autostartEnabled = await window.__TAURI__.core.invoke('get_autostart_status');
+                        (trayToggleAutostart as HTMLInputElement).checked = !!autostartEnabled;
+                        storage.setItem('rtl_autostart', autostartEnabled ? 'true' : 'false');
+                    } catch (e) {
+                        console.warn('Failed to query autostart status:', e);
+                        (trayToggleAutostart as HTMLInputElement).checked = storage.getItem('rtl_autostart') === 'true';
+                    }
+                } else {
+                    (trayToggleAutostart as HTMLInputElement).checked = storage.getItem('rtl_autostart') === 'true';
+                }
+            }
         }
     }
 
@@ -978,14 +992,16 @@ if (typeof window !== 'undefined') {
     }
 
     // تغییر وضعیت پین (Always on Top)
-    async function togglePin() {
+    async function togglePin(forcedState?: boolean | any) {
         try {
+            const targetState = typeof forcedState === 'boolean' ? forcedState : !isPinned;
             if (typeof window !== 'undefined' && window.__TAURI__ && window.__TAURI__.core) {
-                const nextState = await window.__TAURI__.core.invoke('toggle_always_on_top');
-                isPinned = nextState;
+                const applied = await window.__TAURI__.core.invoke('set_always_on_top', { enabled: targetState });
+                isPinned = !!applied;
             } else {
-                isPinned = !isPinned;
+                isPinned = targetState;
             }
+            storage.setItem('rtl_always_on_top', isPinned ? 'true' : 'false');
             if (btnPin) {
                 btnPin.classList.toggle('active', isPinned);
                 btnPin.title = isPinned ? 'پنجره سنجاق شده است (همیشه رو)' : 'سنجاق کردن پنجره در بالا (Always on Top)';
@@ -1170,19 +1186,25 @@ if (typeof window !== 'undefined') {
 
     if (trayToggleAlwaysTop) {
         trayToggleAlwaysTop.addEventListener('change', async () => {
-            await togglePin();
+            const isChecked = (trayToggleAlwaysTop as HTMLInputElement).checked;
+            await togglePin(isChecked);
         });
     }
 
     if (trayToggleAutostart) {
         trayToggleAutostart.addEventListener('change', async () => {
+            const targetState = (trayToggleAutostart as HTMLInputElement).checked;
             if (typeof window !== 'undefined' && window.__TAURI__ && window.__TAURI__.core) {
                 try {
-                    const enabled = await window.__TAURI__.core.invoke('toggle_autostart_cmd');
-                    (trayToggleAutostart as HTMLInputElement).checked = enabled;
+                    const enabled = await window.__TAURI__.core.invoke('set_autostart_cmd', { enabled: targetState });
+                    (trayToggleAutostart as HTMLInputElement).checked = !!enabled;
+                    storage.setItem('rtl_autostart', enabled ? 'true' : 'false');
                 } catch (e) {
-                    console.error('Failed to toggle autostart:', e);
+                    console.error('Failed to set autostart:', e);
+                    (trayToggleAutostart as HTMLInputElement).checked = !targetState;
                 }
+            } else {
+                storage.setItem('rtl_autostart', targetState ? 'true' : 'false');
             }
         });
     }
@@ -1445,9 +1467,28 @@ if (typeof window !== 'undefined') {
                 btnDigits.classList.toggle('active', digitsPersian);
                 updateButtonLabel(btnDigits, digitsPersian ? 'ارقام ۱۲۳' : 'ارقام 123');
             }
+            if (btnPin) {
+                btnPin.classList.toggle('active', isPinned);
+                btnPin.title = isPinned ? 'پنجره سنجاق شده است (همیشه رو)' : 'سنجاق کردن پنجره در بالا (Always on Top)';
+            }
+            if (trayToggleAlwaysTop) {
+                (trayToggleAlwaysTop as HTMLInputElement).checked = isPinned;
+            }
 
             try {
                 if (window.__TAURI__ && window.__TAURI__.core) {
+                    // اطمینان از تنظیم دقیق لایه پنجره مطابق با تنظیم کاربر
+                    window.__TAURI__.core.invoke('set_always_on_top', { enabled: isPinned })
+                        .catch(e => console.warn('Failed to sync always-on-top on startup:', e));
+
+                    // استعلام وضعیت اولیه استارتاپ از سیستم‌عامل
+                    window.__TAURI__.core.invoke('get_autostart_status')
+                        .then((enabled: any) => {
+                            if (trayToggleAutostart) (trayToggleAutostart as HTMLInputElement).checked = !!enabled;
+                            storage.setItem('rtl_autostart', enabled ? 'true' : 'false');
+                        })
+                        .catch(e => console.warn('Initial autostart check failed:', e));
+
                     if (currentShortcut && currentShortcut !== 'Ctrl+Alt+F' && currentShortcut !== 'Ctrl + Alt + F') {
                         const cleanSc = currentShortcut.replace(/\s+/g, '');
                         window.__TAURI__.core.invoke('update_global_shortcut', { shortcutStr: cleanSc }).catch(e => console.warn('Custom shortcut restore failed:', e));

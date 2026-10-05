@@ -370,6 +370,9 @@ function loadApp(overrides = {}) {
         'btn-win-minimize': createMockElement('btn-win-minimize', 'button'),
         'btn-win-maximize': createMockElement('btn-win-maximize', 'button'),
         'btn-win-close': createMockElement('btn-win-close', 'button'),
+        'tray-toggle-always-top': createMockElement('tray-toggle-always-top', 'input'),
+        'tray-toggle-autostart': createMockElement('tray-toggle-autostart', 'input'),
+        'tray-settings-modal': createMockElement('tray-settings-modal', 'div'),
     };
 
     const docListeners = {};
@@ -442,6 +445,10 @@ function loadApp(overrides = {}) {
                     }
                     if (cmd === 'hide_window') return true;
                     if (cmd === 'set_pinned') return true;
+                    if (cmd === 'set_always_on_top') return args && args.enabled !== undefined ? args.enabled : true;
+                    if (cmd === 'get_always_on_top') return false;
+                    if (cmd === 'set_autostart_cmd') return args && args.enabled !== undefined ? args.enabled : true;
+                    if (cmd === 'get_autostart_status') return false;
                     return null;
                 },
             },

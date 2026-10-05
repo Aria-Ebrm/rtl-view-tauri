@@ -252,4 +252,57 @@ test('Tier 1: Feature Coverage - App State, UI & OS Events', async (t) => {
         const hasButtonDrag = app.tauriInvocations.some(inv => inv.cmd === 'start_dragging');
         assert.strictEqual(hasButtonDrag, false, 'Button click inside titlebar must NOT invoke start_dragging');
     });
+
+    await t.test('6.10 Always-on-top state synchronization and persistence', async () => {
+        // 1. Initial startup defaults to false when not saved
+        const app1 = loadApp({ localStorage: {} });
+        app1.triggerDOMContentLoaded();
+        await new Promise(r => setImmediate(r));
+
+        const pinBtn = app1.elements['btn-pin'];
+        const alwaysTopSwitch = app1.elements['tray-toggle-always-top'];
+        assert.strictEqual(pinBtn.classList.contains('active'), false, 'Pin button should default to inactive');
+        assert.strictEqual(alwaysTopSwitch.checked, false, 'Always-on-top switch should default to false');
+
+        // 2. Click pin button to enable always-on-top
+        pinBtn.dispatchEvent('click', {});
+        await new Promise(r => setImmediate(r));
+
+        assert.strictEqual(pinBtn.classList.contains('active'), true, 'Pin button should become active');
+        assert.strictEqual(alwaysTopSwitch.checked, true, 'Always-on-top switch should sync to true');
+        assert.strictEqual(app1.localStorage.getItem('rtl_always_on_top'), 'true', 'Must persist to localStorage');
+
+        // 3. New session starts with preserved true state
+        const app2 = loadApp({ localStorage: { rtl_always_on_top: 'true' } });
+        app2.triggerDOMContentLoaded();
+        await new Promise(r => setImmediate(r));
+
+        assert.strictEqual(app2.elements['btn-pin'].classList.contains('active'), true, 'Pin button must restore active state');
+        assert.strictEqual(app2.elements['tray-toggle-always-top'].checked, true, 'Always-on-top switch must restore true');
+
+        // 4. Toggle via settings switch back to false
+        app2.elements['tray-toggle-always-top'].checked = false;
+        app2.elements['tray-toggle-always-top'].dispatchEvent('change', {});
+        await new Promise(r => setImmediate(r));
+
+        assert.strictEqual(app2.elements['btn-pin'].classList.contains('active'), false, 'Pin button must become inactive');
+        assert.strictEqual(app2.localStorage.getItem('rtl_always_on_top'), 'false', 'Must persist false to localStorage');
+    });
+
+    await t.test('6.11 Autostart settings synchronization and toggle behavior', async () => {
+        const app = loadApp({ localStorage: {} });
+        app.triggerDOMContentLoaded();
+        await new Promise(r => setImmediate(r));
+
+        const autostartSwitch = app.elements['tray-toggle-autostart'];
+        assert.strictEqual(autostartSwitch.checked, false, 'Autostart switch should default to false');
+
+        // Simulate user enabling autostart
+        autostartSwitch.checked = true;
+        autostartSwitch.dispatchEvent('change', {});
+        await new Promise(r => setImmediate(r));
+
+        const hasSetAutostart = app.tauriInvocations.some(inv => inv.cmd === 'set_autostart_cmd');
+        assert.ok(hasSetAutostart, 'set_autostart_cmd must be invoked when switch toggles');
+    });
 });

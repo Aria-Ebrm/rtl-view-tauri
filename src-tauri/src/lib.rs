@@ -69,6 +69,17 @@ fn toggle_maximize_window(window: WebviewWindow) -> Result<bool, String> {
 }
 
 #[tauri::command]
+fn get_always_on_top(window: WebviewWindow) -> Result<bool, String> {
+    window.is_always_on_top().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn set_always_on_top(window: WebviewWindow, enabled: bool) -> Result<bool, String> {
+    window.set_always_on_top(enabled).map_err(|e| e.to_string())?;
+    Ok(enabled)
+}
+
+#[tauri::command]
 fn toggle_always_on_top(window: WebviewWindow) -> Result<bool, String> {
     let current = window.is_always_on_top().map_err(|e| e.to_string())?;
     let next = !current;
@@ -76,28 +87,124 @@ fn toggle_always_on_top(window: WebviewWindow) -> Result<bool, String> {
     Ok(next)
 }
 
+#[cfg(target_os = "windows")]
+mod win_autostart {
+    use std::os::windows::process::CommandExt;
+    use std::process::Command;
+
+    const CREATE_NO_WINDOW: u32 = 0x08000000;
+    const REG_KEY: &str = r#"HKCU\Software\Microsoft\Windows\CurrentVersion\Run"#;
+    const APP_NAME: &str = "RTL View";
+    const OLD_APP_NAME: &str = "rtl-view";
+
+    fn run_reg(args: &[&str]) -> std::io::Result<std::process::Output> {
+        Command::new("reg")
+            .args(args)
+            .creation_flags(CREATE_NO_WINDOW)
+            .output()
+    }
+
+    pub fn is_enabled() -> bool {
+        if let Ok(out) = run_reg(&["query", REG_KEY, "/v", APP_NAME]) {
+            if out.status.success() {
+                return true;
+            }
+        }
+        if let Ok(out) = run_reg(&["query", REG_KEY, "/v", OLD_APP_NAME]) {
+            if out.status.success() {
+                return true;
+            }
+        }
+        false
+    }
+
+    pub fn set_enabled(enabled: bool) -> Result<bool, String> {
+        if enabled {
+            let current_exe = std::env::current_exe()
+                .map_err(|e| format!("خطا در دریافت مسیر فایل اجرایی: {e}"))?;
+            let exe_str = current_exe.to_string_lossy();
+            let value = format!("\"{}\" --minimized", exe_str);
+
+            let res = run_reg(&["add", REG_KEY, "/v", APP_NAME, "/t", "REG_SZ", "/d", &value, "/f"])
+                .map_err(|e| format!("خطا در اجرای دستور رجیستری: {e}"))?;
+
+            if !res.status.success() {
+                let err_msg = String::from_utf8_lossy(&res.stderr);
+                return Err(format!("ثبت در رجیستری ویندوز ناموفق بود: {err_msg}"));
+            }
+
+            // پاکسازی کلید قدیمی با فرمت قدیم در صورت وجود
+            let _ = run_reg(&["delete", REG_KEY, "/v", OLD_APP_NAME, "/f"]);
+
+            Ok(true)
+        } else {
+            let _ = run_reg(&["delete", REG_KEY, "/v", APP_NAME, "/f"]);
+            let _ = run_reg(&["delete", REG_KEY, "/v", OLD_APP_NAME, "/f"]);
+            Ok(false)
+        }
+    }
+}
+
+#[cfg(not(target_os = "windows"))]
+mod non_win_autostart {
+    use tauri::AppHandle;
+    use tauri_plugin_autostart::ManagerExt;
+
+    pub fn is_enabled(app: &AppHandle) -> bool {
+        app.autolaunch().is_enabled().unwrap_or(false)
+    }
+
+    pub fn set_enabled(app: &AppHandle, enabled: bool) -> Result<bool, String> {
+        let mgr = app.autolaunch();
+        if enabled {
+            mgr.enable().map_err(|e| e.to_string())?;
+            Ok(true)
+        } else {
+            mgr.disable().map_err(|e| e.to_string())?;
+            Ok(false)
+        }
+    }
+}
+
+#[tauri::command]
+fn get_autostart_status(app: AppHandle) -> Result<bool, String> {
+    #[cfg(target_os = "windows")]
+    {
+        let _ = app;
+        Ok(win_autostart::is_enabled())
+    }
+    #[cfg(not(target_os = "windows"))]
+    {
+        Ok(non_win_autostart::is_enabled(&app))
+    }
+}
+
+#[tauri::command]
+fn set_autostart_cmd(app: AppHandle, enabled: bool) -> Result<bool, String> {
+    #[cfg(target_os = "windows")]
+    {
+        let _ = app;
+        win_autostart::set_enabled(enabled)
+    }
+    #[cfg(not(target_os = "windows"))]
+    {
+        non_win_autostart::set_enabled(&app, enabled)
+    }
+}
+
 #[tauri::command]
 fn toggle_autostart_cmd(app: AppHandle) -> Result<bool, String> {
-    let autostart_mgr = app.autolaunch();
-    let enabled = autostart_mgr.is_enabled().map_err(|e| e.to_string())?;
-    if enabled {
-        autostart_mgr.disable().map_err(|e| e.to_string())?;
-        Ok(false)
-    } else {
-        autostart_mgr.enable().map_err(|e| e.to_string())?;
-        Ok(true)
-    }
+    let current = get_autostart_status(app.clone())?;
+    set_autostart_cmd(app, !current)
 }
 
 #[tauri::command]
 fn repair_installation(app: AppHandle) -> Result<String, String> {
     // 1. ارزیابی و تنظیم استارتاپ ویندوز
-    let mgr = app.autolaunch();
-    let _ = mgr.is_enabled();
+    let _ = get_autostart_status(app.clone());
 
-    // 2. تنظیم مجدد موقعیت و لایه پنجره
+    // 2. تنظیم مجدد موقعیت پنجره به مرکز صفحه (بدون دستکاری خودسرانه لایه always_on_top)
     if let Some(w) = app.get_webview_window("main") {
-        let _ = w.set_always_on_top(true);
         let _ = w.center();
     }
 
@@ -343,8 +450,12 @@ pub fn run() {
             start_dragging,
             minimize_window,
             toggle_maximize_window,
-            toggle_autostart_cmd,
+            get_always_on_top,
+            set_always_on_top,
             toggle_always_on_top,
+            get_autostart_status,
+            set_autostart_cmd,
+            toggle_autostart_cmd,
             repair_installation,
             update_global_shortcut,
             open_main_window,
